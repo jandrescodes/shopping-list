@@ -6,20 +6,22 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Saneamiento
 
-- [ ] T0. Sanear el esqueleto de Laravel: borrar `app/Models/User.php`, las
+- [x] T0. Sanear el esqueleto de Laravel: borrar `app/Models/User.php`, las
       migraciones `create_users_table` y `create_personal_access_tokens_table`,
       `create_jobs_table`; quitar `laravel/sanctum` de `composer.json`
       (`composer remove`) y la ruta `GET /user` de `routes/api.php`; instalar
-      Pest 4 con browser testing (`pestphp/pest`, `pestphp/pest-plugin-browser`)
-      y convertir `tests/`; añadir Alpine (`alpinejs`, versión pineada) a
+      Pest 3.8 (`pestphp/pest:^3.8`, `pestphp/pest-plugin-laravel`) y convertir
+      `tests/` — los tests de navegador van con Playwright directo
+      (`npx playwright test`), no con `pest-plugin-browser`, porque el entorno
+      usa PHP 8.2 y Pest 4 exige 8.3+; añadir Alpine (`alpinejs`, versión pineada) a
       `package.json` y a `input` de `vite.config.js` junto a
       `resources/js/list.js`; poner `.env.example` en `DB_CONNECTION=mysql` con
       marcadores + `SESSION_DRIVER=cookie`; fijar `APP_LOCALE=es` y
       `APP_FALLBACK_LOCALE=es`; publicar `lang/es/validation.php`. (RF-30)
-      Hecho cuando: `php artisan migrate:fresh` no crea `users`/`sessions`/
+      Hecho cuando: al migrar no se crean `users`/`sessions`/
       `personal_access_tokens`/`jobs`; `grep -r sanctum composer.json` vacío;
       no hay ruta `user` en `php artisan route:list`; `php artisan test` corre
-      con Pest; `npm run build` compila `list.js`; `config('app.locale')==='es'`;
+      con Pest 3; `npm run build` compila `list.js`; `config('app.locale')==='es'`;
       `lang/es/validation.php` existe.
 
 ## Datos y modelos
@@ -194,7 +196,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       marcado / borrado que esperan la respuesta de la API antes de tocar la
       vista (sin UI optimista); en cada edición envía **solo los campos que
       cambian**. (RF-3, RF-15, RF-18, RF-25, RF-32)
-      Hecho cuando: `npm run build` compila; test de navegador — alta/marcado/
+      Hecho cuando: `npm run build` compila; test Playwright (`npx playwright test`) — alta/marcado/
       borrado se reflejan en la UI tras responder la API; al editar solo el
       nombre el `PATCH` lleva solo `{name}`; un `name` con `<img onerror>` se
       muestra como texto.
@@ -202,7 +204,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       "quién agrega" en `localStorage`; acción "quitar de mis listas"; poda al
       recibir 404; refresca el nombre guardado tras abrir con éxito; tope de 20.
       (RF-6, RF-21)
-      Hecho cuando: test de navegador — abrir `/l/{slug}` crea la entrada;
+      Hecho cuando: test Playwright (`npx playwright test`) — abrir `/l/{slug}` crea la entrada;
       "quitar" la borra; abrir un slug 404 la poda; renombrar refresca el nombre;
       la 21ª lista descarta la más antigua; el nombre de "quién agrega" se
       propone editable.
@@ -211,14 +213,14 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       orden de RF-18; pausa con `visibilitychange` y reanuda con consulta
       inmediata al volver al foco; si `sync` → 404 muestra "esta lista ya no
       existe". (RF-18, RF-22, RF-23, RF-27)
-      Hecho cuando: test de navegador — un cambio hecho por petición directa
+      Hecho cuando: test Playwright (`npx playwright test`) — un cambio hecho por petición directa
       aparece en la vista en ≤5 s; ocultar la pestaña detiene el polling y
       mostrarla dispara una consulta inmediata; borrar la lista por otra vía →
       aviso "ya no existe".
 - [ ] T31. `list.js` — desconexión: mantiene visible la última lectura conocida;
       las escrituras sin conexión fallan con aviso y NO se encolan; al volver la
       red el polling recupera el estado. (RF-26)
-      Hecho cuando: test de navegador — con red simulada caída, la lista sigue
+      Hecho cuando: test Playwright (`npx playwright test`) — con red simulada caída, la lista sigue
       visible, una escritura muestra aviso y no cambia nada; al restaurar la red
       el polling vuelve a sincronizar.
 
@@ -251,8 +253,8 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 ## Cierre
 
 - [ ] T35. Suite completa verde + `php artisan pint`. (RF: todos)
-      Hecho cuando: `php artisan test` pasa sin fallos y `php artisan pint --test`
-      no reporta cambios.
+      Hecho cuando: `php artisan test` y `npx playwright test` pasan sin fallos y
+      `php artisan pint --test` no reporta cambios.
 - [ ] T36. `/sdd-validate`: recorrido RF por RF con el test que lo cubre. (RF:
       todos)
       Hecho cuando: existe el informe de validación y todos los RF están

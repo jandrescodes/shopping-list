@@ -168,7 +168,7 @@ las claves presentes en el cuerpo y `->save()`. Serializado por el lock de la
 fila de lista (algoritmo 2). Si A renombra la lista y B marca un ítem casi a la
 vez, ambos cambios sobreviven porque tocan campos/filas distintos y cada
 transacción incrementa `version`. El cliente (`list.js`) **envía solo los campos
-que cambian**, nunca el objeto completo (test de navegador lo verifica).
+que cambian**, nunca el objeto completo (test Playwright lo verifica).
 
 ### 5. Limpiar comprados (RF-19)
 
@@ -213,11 +213,15 @@ Sin scheduler ni cron (constitución 5). Documentado en `docs/deploy.md`.
   con "sin SPA". Se pinea la versión en `package.json` y se añade al input de
   Vite junto a `resources/js/list.js`. Cumple constitución 1 (dependencia de
   runtime justificada).
-- **Pest 4 browser testing (Playwright) como dependencia de desarrollo** vs solo
-  demo manual → RF-6/21/22/23/26/27 son lógica de cliente y la constitución 3
-  exige tests en verde por tarea. Playwright corre bajo `php artisan test`, no
-  toca el runtime ni el hosting compartido. No se enmienda la constitución 3.
-  Se migra la suite a Pest (la constitución admite "Pest/PHPUnit").
+- **Pest 3.8 (API) + Playwright directo (cliente) como dependencias de
+  desarrollo** vs solo demo manual → RF-6/21/22/23/26/27 son lógica de cliente y
+  la constitución 3 exige tests en verde por tarea. El entorno usa PHP 8.2
+  (constitución 1) y Pest 4 + `pest-plugin-browser` exigen PHP 8.3+; por eso la
+  API va con **Pest 3.8** (`php artisan test`) y los tests de navegador con
+  **Playwright directo** (`npx playwright test`, CLI o MCP), fuera de la suite de
+  Pest. Ninguno toca el runtime ni el hosting compartido. La constitución 3 se
+  cumple para la API; los RF de cliente quedan cubiertos por un test de navegador
+  automatizado que hace de puerta. No se enmienda la constitución.
 - **Rate limiting por IP con `throttle`** (constitución 5, RNF) → tres limitadores
   nombrados en `bootstrap/app.php`: `lists-create` (10/h), `writes` (120/min),
   `sync` (60/min). Store: `cache` (database driver en el hosting).
@@ -262,8 +266,10 @@ offline precacheada por `sw.js`).
 
 ## Estrategia de tests
 
-Pest 4, feature tests contra SQLite `:memory:` (`RefreshDatabase`). Tests de
-navegador (Playwright) para la capa de cliente, bajo `php artisan test`.
+Pest 3.8, feature tests contra SQLite `:memory:` (`RefreshDatabase`), bajo
+`php artisan test`. Tests de navegador con Playwright directo
+(`npx playwright test`, CLI o MCP) para la capa de cliente, fuera de la suite de
+Pest (Pest 4 / `pest-plugin-browser` no son instalables en PHP 8.2).
 
 - **Saneamiento (T0)**: no existe `App\Models\User`; `php artisan migrate` no
   crea `users`/`sessions`/`personal_access_tokens`/`jobs`; no hay ruta
@@ -330,7 +336,7 @@ navegador (Playwright) para la capa de cliente, bajo `php artisan test`.
 - **Comando de purga** (RF-16): sembrar lápidas con `deleted_at` viejo y reciente;
   `items:purge-tombstones --before=<fecha>` borra solo las viejas y reporta el
   conteo; sin `--before` aborta.
-- **Cliente (Playwright, bajo `php artisan test`)**:
+- **Cliente (Playwright directo, `npx playwright test`)**:
     - RF-6: abrir `/l/{slug}` guarda la entrada en `localStorage`; "quitar de mis
       listas" la borra; abrir una lista con 404 la poda; el nombre mostrado se
       refresca tras renombrar; tope de 20 entradas.
@@ -371,9 +377,9 @@ navegador (Playwright) para la capa de cliente, bajo `php artisan test`.
 - **Sin conflictos tras el saneamiento de T0.** Antes de T0 el repo viola la
   constitución 4 (esqueleto de auth presente); T0 lo corrige y debe completarse
   antes de T1.
-- Alpine y Pest 4 browser testing son dependencias justificadas aquí
-  (constitución 1): Alpine es runtime pero mínimo y sin SPA; Playwright es solo
-  de desarrollo.
+- Alpine, Pest 3.8 y Playwright son dependencias justificadas aquí
+  (constitución 1): Alpine es runtime pero mínimo y sin SPA; Pest y Playwright
+  son solo de desarrollo. Pest 4 se descartó por requerir PHP 8.3+.
 - El `deleted_at` de RF-16 es metadato de sync, no historial navegable: sin UI ni
   endpoint que liste lápidas; `deleted_ids` expone solo el `id` (constitución 7).
 - Rate limiting y `X-Robots-Tag` son cotas defensivas para hosting compartido

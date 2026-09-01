@@ -292,14 +292,14 @@ constitución (el slug es la única llave de acceso).
 
 ## Criterios de finalización
 
-- Todos los RF con test automatizado en verde: Pest/PHPUnit para la API y la
-  persistencia; tests de navegador con Playwright (Pest 4 browser testing, bajo
-  `php artisan test`) para el comportamiento de cliente (RF-6, RF-21, RF-22,
-  RF-23, RF-26, RF-27). RF-28 y RF-29 se cubren con tests de contenido (manifest
-  servido y válido con `name`, `icons` 192 y 512, `theme_color`, `display`; los
-  ficheros de icono referenciados existen y se sirven con `Content-Type: image/png`;
-  `sw.js` servido con MIME de JS) más la verificación manual de Lighthouse
-  indicada abajo.
+- Todos los RF con test automatizado en verde: Pest 3.8 (sobre PHPUnit) para la
+  API y la persistencia, bajo `php artisan test`; tests de navegador con
+  Playwright (CLI o MCP, `npx playwright test`) para el comportamiento de cliente
+  (RF-6, RF-21, RF-22, RF-23, RF-26, RF-27). RF-28 y RF-29 se cubren con tests
+  de contenido (manifest servido y válido con `name`, `icons` 192 y 512,
+  `theme_color`, `display`; los ficheros de icono referenciados existen y se
+  sirven con `Content-Type: image/png`; `sw.js` servido con MIME de JS) más la
+  verificación manual de Lighthouse indicada abajo.
 - `APP_URL` fijada al dominio real en el despliegue: un test comprueba que el
   enlace devuelto por RF-1 es absoluto y arranca por `APP_URL`.
 - Demo manual en celular: crear lista → abrir el enlace en dos dispositivos →
@@ -417,10 +417,15 @@ Ninguna.
   idéntico byte a byte al de un slug que nunca existió; el aviso "ya no existe"
   lo deduce el cliente que la tenía abierta (RF-27).
 - **Tests de la capa de cliente** (criterios de finalización, constitución 3):
-  RF-6/21/22/23/26/27 se cubren con tests de navegador Playwright integrados en
-  `php artisan test` (Pest 4 browser testing). Es dependencia de desarrollo, no
-  de runtime: no afecta al hosting compartido y se justifica en el plan
-  (constitución 1). No hace falta enmendar la constitución 3.
+  RF-6/21/22/23/26/27 se cubren con tests de navegador Playwright
+  (`npx playwright test`, ejecutados aparte de `php artisan test`). Pest 4 y su
+  `pest-plugin-browser` exigen PHP 8.3+ y el entorno usa PHP 8.2 (constitución
+  1), así que la API va con Pest 3.8 y los tests de navegador con Playwright
+  directo. Ambos son dependencias de desarrollo, no de runtime: no afectan al
+  hosting compartido. La constitución 3 ("tests Pest/PHPUnit en verde por
+  tarea") se cumple para la API; los RF de cliente quedan igualmente cubiertos
+  por un test automatizado de navegador que hace de puerta. No hace falta
+  enmendar la constitución.
 - **Purga de lápidas** (RF-16): comando `php artisan items:purge-tombstones
 --before=<fecha>` ejecutado a mano en mantenimiento; con test propio, sin
   scheduler. Documentar en `docs/deploy.md`.

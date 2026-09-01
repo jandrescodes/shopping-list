@@ -1,8 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| REST endpoints for shopping lists and items. No authentication: the
+| unguessable list slug is the only access key (constitution 4). The
+| concrete routes are added in task T21.
+|
+*/
