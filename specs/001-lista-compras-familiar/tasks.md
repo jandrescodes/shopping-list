@@ -26,7 +26,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Datos y modelos
 
-- [ ] T1. Migración `create_shopping_lists_table`: `id`, `slug` string(22)
+- [x] T1. Migración `create_shopping_lists_table`: `id`, `slug` string(22)
       unique, `name` string(60), `version` unsignedBigInteger default 0,
       `timestamps()`. (RF-1, RF-7, RF-24)
       Hecho cuando: `php artisan migrate` crea la tabla y un test
