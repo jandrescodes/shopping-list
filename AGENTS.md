@@ -11,9 +11,13 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 ## Comandos
 
 - Ejecutar: `php artisan serve`
-- Tests: `php artisan test`
+- Tests API/persistencia: `php artisan test` (Pest 3.8)
+- Tests de navegador (capa de cliente): `npx playwright test` (Playwright CLI/MCP)
 - Lint/formato: `php artisan pint`
 - Assets: `npm run build`
+
+> PHP 8.2 (XAMPP) fija el techo: Pest 4 y `pest-plugin-browser` exigen 8.3+, así
+> que los tests de navegador van con Playwright directo, no dentro de Pest.
 
 ## Estilo y convenciones
 
@@ -25,12 +29,15 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - Validación de entradas con Form Requests.
 - URLs públicas de una lista por `slug`, nunca por `id`.
 - Interfaz mobile-first. Un solo tema por ahora; modo oscuro es mejora futura.
+- Package manager: `npm` (no pnpm). Dependencias de front con versión exacta
+  pineada (`npm i --save-exact`); a Hostinger solo sube `public/build/`.
 
 ## Archivos / módulos clave
 
 - `app/Models/ShoppingList.php`, `app/Models/Item.php`
 - `app/Http/Controllers/Api/ShoppingListController.php`, `.../ItemController.php`
 - `routes/api.php`
+- `resources/js/list.js` (Alpine, versión pineada), `vite.config.js` (`input`)
 - `public/manifest.json`, `public/sw.js`
 
 ## Reglas
@@ -46,4 +53,6 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 ## Al terminar cualquier tarea
 
 - Ejecuta `php artisan test` y confirma en la respuesta que pasa.
+- Si tocaste la capa de cliente (`resources/js/`), ejecuta también
+  `npx playwright test` y confírmalo.
 - Ejecuta `php artisan pint` sobre los archivos tocados.

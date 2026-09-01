@@ -1,59 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 🛒 Lista de compras familiar
 
-## About Laravel
+**PWA de listas de compras compartidas en familia, sin cuentas de usuario.**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-instalable-5A0FC8?logo=pwa&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-Pest%203.8%20%2B%20Playwright-25A162?logo=pest&logoColor=white)
+![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+</div>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Crea una lista, comparte el enlace y todos en casa ven y editan los mismos ítems
+en tiempo casi real. Cada lista se identifica por un `slug` no adivinable que es
+la **única llave de acceso**: no hay registro, login ni contraseñas.
 
-## Learning Laravel
+## Características
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Sin cuentas.** El enlace de la lista es la credencial; nada que recordar.
+- **Colaboración en vivo.** Agregar, editar, marcar y borrar ítems; los cambios
+  se propagan entre dispositivos por _polling_ HTTP (sin WebSockets).
+- **Resolución de conflictos** campo por campo con versionado optimista
+  (última escritura gana, por campo).
+- **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla
+  completa y mantiene visible la última lectura conocida sin conexión.
+- **Mobile-first.** Diseñada y probada primero para pantalla de celular.
+- **Hosting compartido.** Sin colas, schedulers ni procesos persistentes:
+  corre en un plan de hosting compartido estándar.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Stack
 
-## Laravel Sponsors
+| Capa         | Tecnología                                   |
+| ------------ | -------------------------------------------- |
+| Backend      | PHP 8.2, Laravel 12, API REST                |
+| Persistencia | MySQL vía Eloquent                           |
+| Frontend     | Blade + Alpine.js, empaquetado con Vite      |
+| PWA          | `manifest.json` + service worker (`sw.js`)   |
+| Sync         | Polling HTTP con cursor opaco                |
+| Tests        | Pest 3.8 (API), Playwright (capa de cliente) |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Requisitos
 
-### Premium Partners
+- PHP **8.2**
+- MySQL
+- Composer
+- Node.js con **npm**
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Instalación
 
-## Contributing
+```bash
+git clone https://github.com/jandrescodes/shopping-list.git
+cd shopping-list
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+composer install
+npm install
 
-## Code of Conduct
+cp .env.example .env
+php artisan key:generate
+# Ajusta DB_DATABASE / DB_USERNAME / DB_PASSWORD en .env
+php artisan migrate
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+npm run build
+php artisan serve
+```
 
-## Security Vulnerabilities
+La app queda en `http://localhost:8000`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Comandos
 
-## License
+| Acción                 | Comando                       |
+| ---------------------- | ----------------------------- |
+| Servidor de desarrollo | `php artisan serve`           |
+| Tests API/persistencia | `php artisan test` (Pest 3.8) |
+| Tests de navegador     | `npx playwright test`         |
+| Lint/formato           | `php artisan pint`            |
+| Compilar assets        | `npm run build`               |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> El entorno usa PHP 8.2, que fija el techo de herramientas: Pest 4 y
+> `pest-plugin-browser` exigen PHP 8.3+, así que los tests de la capa de cliente
+> corren con Playwright directo, fuera de la suite de Pest.
+
+## Estructura
+
+```
+app/Http/Controllers/Api/   Controladores REST (listas, ítems)
+app/Models/                  ShoppingList, Item
+routes/api.php               Endpoints de la API
+resources/js/list.js         Cliente Alpine (edición + polling)
+resources/views/             Vistas Blade
+public/manifest.json         Manifest PWA
+public/sw.js                 Service worker
+lang/es/                     Textos en español
+docs/                        Constitución y roadmap del proyecto
+specs/                       Especificaciones por feature (SDD)
+```
+
+## Documentación
+
+- [`AGENTS.md`](AGENTS.md) — convenciones, comandos y arquitectura (fuente única).
+- [`docs/constitution.md`](docs/constitution.md) — principios innegociables.
+- [`docs/roadmap.md`](docs/roadmap.md) — estado y backlog.
+- [`specs/`](specs/) — especificaciones por feature (`spec.md`, `plan.md`, `tasks.md`).
+
+El proyecto sigue **Spec-Driven Development**: cada feature nace como
+`specs/NNN-<slug>/` con spec, plan y tareas antes de tocar código.
+
+## Licencia
+
+<div align="center">
+
+[MIT](LICENSE) &nbsp;·&nbsp; Hecho con ❤️ en Santa Cruz de la Sierra, Bolivia
+
+</div>
