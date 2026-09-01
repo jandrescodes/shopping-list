@@ -47,6 +47,11 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - Nuevas convenciones/arquitectura se documentan aquí (`AGENTS.md`), no en
   `CLAUDE.md`.
 - No modifiques archivos dentro de `specs/` salvo petición explícita.
+- **Precedencia**: `docs/constitution.md` manda sobre specs y planes. Ante
+  conflicto entre `docs/`/`specs/` y este archivo, este archivo es la fuente
+  operativa del **código** y `docs/`/`specs/` la capa de **planificación**.
+- `docs/` y `specs/` se versionan pero **no se despliegan**: quedan fuera del
+  `rsync`/`scp` de despliegue y del docroot.
 - No subas `.env`. No asumas colas ni schedulers sin verificar el plan de hosting.
 - No añadas WebSockets/Reverb ni autenticación sin cambiar antes la constitución.
 
@@ -56,3 +61,48 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - Si tocaste la capa de cliente (`resources/js/`), ejecuta también
   `npx playwright test` y confírmalo.
 - Ejecuta `php artisan pint` sobre los archivos tocados.
+
+## Planificación de features (Spec-Driven Development)
+
+Este proyecto se lleva con SDD: primero la spec, luego el plan, luego las
+tareas, y solo entonces el código. **La spec es el contrato: si algo no está en
+ella, no se implementa.**
+
+### Artefactos
+
+```
+docs/constitution.md          ← principios del proyecto (nivel proyecto)
+docs/roadmap.md               ← hecho / en curso / backlog (nivel proyecto)
+specs/NNN-<slug>/
+├── spec.md                   ← QUÉ y POR QUÉ (RF en EARS) + § Clarificaciones
+├── plan.md                   ← CÓMO (módulos, datos, decisiones, riesgos)
+├── tasks.md                  ← tareas <30 min + bloque de cierre
+└── validation.md             ← recorrido RF por RF + veredicto (fase 7)
+```
+
+Una feature no está cerrada hasta que existen sus cuatro archivos.
+
+### Fases
+
+| #   | Fase           | Command              |
+| --- | -------------- | -------------------- |
+| 1   | Constitución   | `/sdd:constitution`  |
+| 2   | Especificación | `/sdd:spec`          |
+| 3   | Clarificación  | `/sdd:clarify`       |
+| 4   | Planificación  | `/sdd:plan`          |
+| 5   | Tareas         | `/sdd:tasks`         |
+| 6   | Implementación | `/sdd:implement <n>` |
+| 7   | Validación     | `/sdd:validate`      |
+| 8   | Cambio         | `/sdd:change <req>`  |
+
+### Reglas
+
+- **Numeración `specs/NNN`**: contador propio de `specs/`, tres dígitos,
+  monótono, sin reutilizar números borrados. Empieza en `001`; la próxima
+  feature es `002`. No es el ordinal del roadmap ni un RF histórico.
+- **Verificación como puerta**: ninguna tarea se marca `[x]` sin
+  `php artisan test` en verde y, si tocó `resources/js/`, también
+  `npx playwright test`.
+- El bloque `## Cierre de la feature` de `tasks.md` va fuera de la numeración
+  `Tn` y no se implementa con `/sdd:implement`.
+- No modificar `specs/` fuera de su fase salvo petición explícita.

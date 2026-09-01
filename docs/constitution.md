@@ -7,8 +7,9 @@ Principios innegociables. Toda spec, plan y tarea debe cumplirlos.
    en el plan.
 2. **La spec manda**: ningún comportamiento se implementa si no está en la spec
    activa de `specs/`. Si falta una decisión, se detiene el trabajo y se pregunta.
-3. **Tests como puerta**: cada tarea termina con sus tests (Pest/PHPUnit) en
-   verde. Prohibido avanzar con tests en rojo.
+3. **Verificación como puerta**: cada tarea termina con su verificación en
+   verde — `php artisan test` (Pest 3.8) para API y persistencia, y
+   `npx playwright test` para la capa de cliente. Prohibido avanzar en rojo.
 4. **Sin autenticación**: no hay tabla de usuarios, login, roles ni permisos. El
    `slug` no adivinable de la lista es la única llave de acceso. Añadir cualquier
    forma de auth exige cambiar esta constitución primero.
@@ -18,7 +19,7 @@ Principios innegociables. Toda spec, plan y tarea debe cumplirlos.
 6. **Persistencia**: MySQL vía Eloquent. `snake_case` en BD, `camelCase` en PHP.
    Las URLs públicas usan `slug`, nunca el `id` autoincremental. El `.env` nunca
    se sube al repositorio.
-7. **Alcance acotado**: es una app doméstica de listas de compras. No es
+7. **Alcance del producto**: es una app doméstica de listas de compras. No es
    multi-tenant, no lleva historial/auditoría (más allá de un campo de texto
    libre opcional), no compite con gestores de tareas generales.
 8. **Idioma**: código, identificadores, rutas y nombres de test en inglés;

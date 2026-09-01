@@ -1,6 +1,7 @@
 # Plan técnico — Spec 001
 
-> Regenerado tras la 2ª ronda de clarificación (informe `docs/qa-review-001.md`).
+> Regenerado tras la 2ª ronda de clarificación
+> (ver `spec.md` § Clarificaciones — "Fase 3 — segunda ronda").
 > El corte de sincronización pasa de `updated_at`/`timestamp(3)` a un **contador
 > de versión monótono por lista**; el slug pasa a 16 bytes base64url; el borrado
 > de lista es físico; se añade una tarea T0 de saneamiento del esqueleto.
@@ -264,7 +265,30 @@ Rutas web: `GET /` (home), `GET /l/{slug}` (vista de lista; `404` directo si el
 slug no existe; `X-Robots-Tag: noindex, nofollow`), `GET /offline` (página
 offline precacheada por `sw.js`).
 
-## Estrategia de tests
+## Riesgos
+
+- **Slug filtrado** (compartido en un chat público, indexado, en el historial de
+  un navegador prestado) → sin auth, quien lo tenga controla la lista. Mitigación
+  parcial: 128 bits de entropía, `X-Robots-Tag` + `robots.txt`, HTTPS
+  obligatorio. Se acepta: es la premisa de la constitución 4.
+- **`FOR UPDATE` no existe en SQLite `:memory:`** → la serialización real de
+  RF-25 no se ejerce en los tests, solo su corrección lógica secuencial.
+  Mitigación: verificación manual en dos dispositivos (criterio de finalización).
+  Riesgo residual aceptado.
+- **Lápidas sin purga automática** (RF-16, constitución 5) → `items` crece de
+  forma monótona. Mitigación: `items:purge-tombstones` manual, documentado en
+  `docs/deploy.md`.
+- **Rate limiting sobre el store `cache`** en hosting compartido → si el driver
+  de caché no persiste entre peticiones, los limitadores no cuentan. Mitigación:
+  fijar `CACHE_STORE=database` en el `.env` de producción y verificarlo en el
+  despliegue.
+- **Dos altas concurrentes en el límite de 200** pueden dejar 201 → aceptado
+  explícitamente (RF-20, cota de protección, no de negocio).
+- **Playwright fuera de `php artisan test`** → una suite puede pasar mientras la
+  otra falla si no se ejecutan ambas. Mitigación: la regla de `AGENTS.md`
+  § "Al terminar cualquier tarea" y la puerta de verificación de la constitución 3.
+
+## Estrategia de verificación
 
 Pest 3.8, feature tests contra SQLite `:memory:` (`RefreshDatabase`), bajo
 `php artisan test`. Tests de navegador con Playwright directo

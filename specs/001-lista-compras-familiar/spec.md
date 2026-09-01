@@ -1,5 +1,7 @@
 # Spec 001 — Lista de compras compartida
 
+**Estado:** en curso
+
 ## Contexto y objetivo
 
 La familia necesita una lista de compras que varias personas puedan ver y
@@ -312,7 +314,7 @@ constitución (el slug es la única llave de acceso).
 
 Ninguna.
 
-## Resoluciones registradas
+## Clarificaciones
 
 ### Fase 2 — spec inicial
 

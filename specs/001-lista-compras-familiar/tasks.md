@@ -250,24 +250,26 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       las anteriores a `--before` y reporta el número; sin `--before` sale con
       error.
 
-## Cierre
+## Cierre de la feature
 
-- [ ] T35. Suite completa verde + `php artisan pint`. (RF: todos)
-      Hecho cuando: `php artisan test` y `npx playwright test` pasan sin fallos y
-      `php artisan pint --test` no reporta cambios.
-- [ ] T36. `/sdd-validate`: recorrido RF por RF con el test que lo cubre. (RF:
-      todos)
-      Hecho cuando: existe el informe de validación y todos los RF están
-      cubiertos o justificados.
-- [ ] T37. `docs/deploy.md`: despliegue subiendo archivos por `rsync`/`scp` sobre
-      la conexión SSH del runner (sin `git clone` en el servidor),
-      `composer install --no-dev`, `.env` con MySQL de Hostinger, `migrate
-    --force`, `npm run build`, HTTPS forzado, permisos de `storage/`, nota de
-      `items:purge-tombstones` manual. (RF: —, RNF HTTPS, RF-16)
-      Hecho cuando: `docs/deploy.md` existe con los pasos numerados y sin ningún
-      `git clone`/`git pull` en el servidor.
-- [ ] T38. Mover la feature 001 a "Hecho" en `docs/roadmap.md`. (RF: —)
-      Hecho cuando: `docs/roadmap.md` lista 001 bajo "Hecho".
+_Checkboxes sueltos, fuera de la numeración `Tn` — no se implementan con
+`/sdd:implement`._
+
+- [ ] Suite completa verde: `php artisan test` y `npx playwright test` sin
+      fallos, y `php artisan pint --test` sin cambios.
+- [ ] Verificación de todos los RF: `/sdd:validate` →
+      `specs/001-lista-compras-familiar/validation.md` (todos los RF cubiertos o
+      justificados).
+- [ ] `docs/deploy.md`: despliegue subiendo archivos por `rsync`/`scp` sobre la
+      conexión SSH del runner (sin `git clone`/`git pull` en el servidor),
+      **excluyendo `docs/` y `specs/`**, `composer install --no-dev`, `.env` con
+      MySQL de Hostinger, `CACHE_STORE=database`, `migrate --force`,
+      `npm run build`, HTTPS forzado, permisos de `storage/`, nota de
+      `items:purge-tombstones` manual. (RNF HTTPS, RF-16)
+- [ ] Mover la feature 001 a "Hecho ✅" en `docs/roadmap.md`, enlazando la
+      carpeta (lo hace `/sdd:validate` al cerrar).
+- [ ] Convención nueva descubierta durante la implementación → anotarla en
+      `AGENTS.md`.
 
 ## Cobertura RF → tarea
 
@@ -309,4 +311,4 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 | RNF slug no adivinable   | T1, T3                       |
 | RNF límite de peticiones | T22                          |
 | RNF no indexable         | T23                          |
-| RNF HTTPS                | T37                          |
+| RNF HTTPS                | Cierre (docs/deploy.md)      |

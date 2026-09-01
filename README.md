@@ -102,10 +102,12 @@ specs/                       Especificaciones por feature (SDD)
 - [`AGENTS.md`](AGENTS.md) — convenciones, comandos y arquitectura (fuente única).
 - [`docs/constitution.md`](docs/constitution.md) — principios innegociables.
 - [`docs/roadmap.md`](docs/roadmap.md) — estado y backlog.
-- [`specs/`](specs/) — especificaciones por feature (`spec.md`, `plan.md`, `tasks.md`).
+- [`specs/`](specs/) — especificaciones por feature (`spec.md`, `plan.md`,
+  `tasks.md`, `validation.md`).
 
 El proyecto sigue **Spec-Driven Development**: cada feature nace como
-`specs/NNN-<slug>/` con spec, plan y tareas antes de tocar código.
+`specs/NNN-<slug>/` con spec, plan y tareas antes de tocar código, y no se cierra
+hasta que la fase de validación deja su `validation.md`.
 
 ## Licencia
 
