@@ -66,7 +66,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Contador de versión y transacciones
 
-- [ ] T7. Servicio/trait de escritura versionada: helper que, dentro de una
+- [x] T7. Servicio/trait de escritura versionada: helper que, dentro de una
       transacción, hace `lockForUpdate` de la fila de lista, incrementa
       `version`, aplica el callback y sella el `version` de las filas tocadas.
       (RF-24, RF-25)
