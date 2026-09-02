@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('quantity', 50)->nullable();
             $table->string('added_by', 50)->nullable();
             $table->boolean('is_purchased')->default(false);
-            $table->unsignedBigInteger('version');
+            $table->unsignedBigInteger('version')->default(0);
             $table->timestamps();
             $table->softDeletes();
 

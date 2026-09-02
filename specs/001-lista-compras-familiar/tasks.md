@@ -40,7 +40,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       (RF-10, RF-11, RF-12, RF-16, RF-24)
       Hecho cuando: `php artisan migrate` corre sin error y un test de esquema
       verifica columnas, los dos índices y `deleted_at`.
-- [ ] T3. Modelo `ShoppingList`: `hasMany(Item)`, `getRouteKeyName()='slug'`,
+- [x] T3. Modelo `ShoppingList`: `hasMany(Item)`, `getRouteKeyName()='slug'`,
       `$fillable=['name']`, evento `creating` que asigna slug único
       (`random_bytes(16)` → base64url sin relleno) con reintento en colisión;
       método `bumpVersion()` que hace `increment('version')` y devuelve el nuevo
@@ -48,17 +48,17 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       Hecho cuando: test — dos listas → slugs distintos, 22 chars del alfabeto
       `[A-Za-z0-9_-]`, no numéricos; mockeando `random_bytes` para colisionar una
       vez, la segunda lista igual obtiene slug libre; `bumpVersion()` incrementa.
-- [ ] T4. Modelo `Item`: `belongsTo(ShoppingList)`, `use SoftDeletes`,
+- [x] T4. Modelo `Item`: `belongsTo(ShoppingList)`, `use SoftDeletes`,
       `$fillable=['name','quantity','added_by','is_purchased']`, cast
       `is_purchased => bool`, mutadores de `quantity`/`added_by` que hacen `trim`
       y devuelven `null` si queda vacío. (RF-10, RF-11, RF-12, RF-15, RF-16, RF-17)
       Hecho cuando: test — dos ítems con el mismo nombre coexisten; `quantity`
       `"  "` se guarda como `null`; `delete()` deja `deleted_at` y el ítem sale
       de la relación por defecto.
-- [ ] T5. Factories `ShoppingListFactory` e `ItemFactory`. (RF: —)
+- [x] T5. Factories `ShoppingListFactory` e `ItemFactory`. (RF: —)
       Hecho cuando: `ShoppingList::factory()->has(Item::factory()->count(3))->create()`
       funciona en un test.
-- [ ] T6. `ItemResource`: `{id, name, quantity, added_by, is_purchased, version}`;
+- [x] T6. `ItemResource`: `{id, name, quantity, added_by, is_purchased, version}`;
       nunca `shopping_list_id` ni campos de lápida. (RF-3, RF-24, RF-32)
       Hecho cuando: test — `ItemResource::make($item)->toArray()` tiene
       exactamente esas 6 claves.

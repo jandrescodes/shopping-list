@@ -2,13 +2,15 @@
 
 ## Hecho ✅
 
-_Todavía no hay features completadas — proyecto nuevo._
+- **Lista de compras familiar** (parcial) — T0-T6 completados:
+  modelos, factories, ItemResource y tests (23 Pest verdes).
+  → `specs/001-lista-compras-familiar/tasks.md`
 
 ## Siguiente 🔜
 
-- **Lista de compras compartida** — crear listas con nombre,
-  agregar/editar/marcar/eliminar ítems, y sincronizar los cambios entre
-  dispositivos por polling, sin necesidad de cuenta.
+- **Lista de compras familiar** (continuación) — T7-T33 pendientes:
+  escritura versionada, Form Requests, controladores API, rutas,
+  frontend/PWA.
   → `specs/001-lista-compras-familiar/`
 
 ## Backlog / ideas 💡
