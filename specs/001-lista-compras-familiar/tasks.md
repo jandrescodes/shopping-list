@@ -76,17 +76,17 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Validación (Form Requests)
 
-- [ ] T8. `StoreListRequest` / `UpdateListRequest`: `name` requerido, string,
+- [x] T8. `StoreListRequest` / `UpdateListRequest`: `name` requerido, string,
       `trim`, 1–60 chars; mensajes en español donde el default no baste. (RF-2,
       RF-7)
       Hecho cuando: test unitario — nombre vacío, solo espacios y de 61 chars
       fallan; "Feria" pasa; el mensaje sale en español.
-- [ ] T9. `StoreItemRequest`: `name` req. 1–100 (trim); `quantity` nullable ≤50;
+- [x] T9. `StoreItemRequest`: `name` req. 1–100 (trim); `quantity` nullable ≤50;
       `added_by` nullable ≤50; `prepareForValidation` recorta y convierte
       `""`→`null` en `quantity`/`added_by`. (RF-11, RF-12, RF-13)
       Hecho cuando: test — nombre `""`/>100 y `quantity`/`added_by` >50 fallan;
       `quantity`/`added_by` con solo espacios llegan al controlador como `null`.
-- [ ] T10. `UpdateItemRequest`: `name` opcional 1–100, `quantity` opcional ≤50
+- [x] T10. `UpdateItemRequest`: `name` opcional 1–100, `quantity` opcional ≤50
       (mismo trim→null), `is_purchased` opcional boolean. (RF-14, RF-15)
       Hecho cuando: test — `{is_purchased:true}` solo pasa; `{name:""}` falla.
 
