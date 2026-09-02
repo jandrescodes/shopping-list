@@ -32,7 +32,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       Hecho cuando: `php artisan migrate` crea la tabla y un test
       `Schema::hasColumns` verifica `slug`, `name`, `version` y el índice unique
       de `slug`.
-- [ ] T2. Migración `create_items_table`: `id`, `shopping_list_id` FK
+- [x] T2. Migración `create_items_table`: `id`, `shopping_list_id` FK
       `cascadeOnDelete`, `name` string(100), `quantity` string(50) null,
       `added_by` string(50) null, `is_purchased` bool default false, `version`
       unsignedBigInteger, `timestamps()`, `softDeletes()`, índices
