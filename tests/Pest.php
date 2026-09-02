@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ShoppingList;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,4 +17,5 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->afterEach(fn () => ShoppingList::$slugGenerator = null)
     ->in('Feature');

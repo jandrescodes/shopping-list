@@ -27,9 +27,20 @@ it('retries slug generation on collision', function () {
         'name' => 'Existente',
     ]);
 
+    $calls = 0;
+    ShoppingList::$slugGenerator = function () use ($collisionSlug, &$calls) {
+        $calls++;
+
+        // First attempt returns the taken slug; the loop must retry.
+        return $calls === 1
+            ? $collisionSlug
+            : rtrim(strtr(base64_encode(random_bytes(16)), '+/', '-_'), '=');
+    };
+
     $list = ShoppingList::create(['name' => 'Nueva']);
 
-    expect($list->slug)->not->toBe($collisionSlug)
+    expect($calls)->toBe(2)
+        ->and($list->slug)->not->toBe($collisionSlug)
         ->and($list->slug)->toHaveLength(22);
 });
 

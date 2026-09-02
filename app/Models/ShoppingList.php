@@ -12,6 +12,14 @@ class ShoppingList extends Model
 
     protected $fillable = ['name'];
 
+    /**
+     * Test seam: when set, replaces the CSPRNG slug generator so a test can
+     * force a collision. Production code never touches this.
+     *
+     * @var (callable(): string)|null
+     */
+    public static $slugGenerator = null;
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -22,10 +30,8 @@ class ShoppingList extends Model
         return $this->hasMany(Item::class);
     }
 
-    public static function boot(): void
+    protected static function booted(): void
     {
-        parent::boot();
-
         static::creating(function (ShoppingList $list) {
             if (is_null($list->slug)) {
                 $list->slug = self::generateUniqueSlug();
@@ -51,6 +57,10 @@ class ShoppingList extends Model
 
     private static function generateSlug(): string
     {
+        if (self::$slugGenerator !== null) {
+            return (self::$slugGenerator)();
+        }
+
         return rtrim(strtr(base64_encode(random_bytes(16)), '+/', '-_'), '=');
     }
 }

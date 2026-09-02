@@ -75,7 +75,7 @@ gestionado por el servidor, portable a SQLite sin cambios.
 | `quantity`                  | `string(50)`, nullable                | texto libre; vacío tras `trim` ⇒ `null` (RF-11)                                    |
 | `added_by`                  | `string(50)`, nullable                | texto libre, sin FK; vacío tras `trim` ⇒ `null` (RF-12)                            |
 | `is_purchased`              | `boolean`, default `false`            |                                                                                    |
-| `version`                   | `unsignedBigInteger`, index           | sello: valor del contador de la lista tras la escritura que tocó este ítem (RF-24) |
+| `version`                   | `unsignedBigInteger`, default `0`, index | sello: valor del contador de la lista tras la escritura que tocó este ítem (RF-24); `0` es transitorio hasta que la escritura versionada (T7) lo fija |
 | `created_at` / `updated_at` | `timestamp`                           | `created_at` fija el orden intra-grupo (RF-18)                                     |
 | `deleted_at`                | `timestamp`, nullable                 | `SoftDeletes`; lápida para sync (RF-16)                                            |
 

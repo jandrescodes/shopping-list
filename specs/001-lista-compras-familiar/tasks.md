@@ -35,7 +35,8 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 - [x] T2. Migración `create_items_table`: `id`, `shopping_list_id` FK
       `cascadeOnDelete`, `name` string(100), `quantity` string(50) null,
       `added_by` string(50) null, `is_purchased` bool default false, `version`
-      unsignedBigInteger, `timestamps()`, `softDeletes()`, índices
+      unsignedBigInteger default 0 (sello transitorio hasta que T7 lo fija en la
+      escritura), `timestamps()`, `softDeletes()`, índices
       `(shopping_list_id, version)` y `(shopping_list_id, is_purchased, created_at)`.
       (RF-10, RF-11, RF-12, RF-16, RF-24)
       Hecho cuando: `php artisan migrate` corre sin error y un test de esquema
