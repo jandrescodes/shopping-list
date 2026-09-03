@@ -15,6 +15,16 @@
 </head>
 
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased">
+    @unless (request()->is('/'))
+        {{-- Vuelta al home: única navegación interna, ya que las listas solo se
+             alcanzan por su enlace (RF-5) y "Mis listas" vive en el home (RF-6). --}}
+        <nav class="mx-auto w-full max-w-md px-4 pt-4">
+            <a href="/" class="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline">
+                <span aria-hidden="true">&larr;</span> Mis listas
+            </a>
+        </nav>
+    @endunless
+
     <main class="mx-auto w-full max-w-md px-4 py-6">
         @yield('content')
     </main>

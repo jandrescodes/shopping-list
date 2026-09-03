@@ -54,3 +54,19 @@ it('escapes user content, never rendering it as HTML (RF-32)', function () {
 it('returns 404 for an unknown list slug', function () {
     $this->get('/l/does-not-exist')->assertNotFound();
 });
+
+it('offers a link back to the home page', function () {
+    $list = ShoppingList::factory()->create();
+
+    $this->get("/l/{$list->slug}")
+        ->assertOk()
+        ->assertSee('<nav', false)
+        ->assertSee('href="/"', false)
+        ->assertSee('Mis listas');
+});
+
+it('does not show the back link on the home page itself', function () {
+    $this->withoutVite();
+
+    $this->get('/')->assertOk()->assertDontSee('<nav', false);
+});

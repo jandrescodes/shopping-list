@@ -4,24 +4,46 @@
 
 @section('content')
     {{--
-        Server-rendered initial state. resources/js/list.js (T28–T31) mounts
-        Alpine on #list-app, takes over item rendering, add / edit / mark /
-        delete and the 3–4 s polling. All user text is escaped with {{ }} /
-        x-text, never {!! !!} nor x-html (RF-32).
+        Server-rendered initial state (RF-3, RF-18). resources/js/list.js mounts
+        Alpine on #list-app, loads the authoritative state through `show`, then
+        takes over item rendering, add / edit / mark / delete and (T29–T31) the
+        3–4 s polling. Every piece of user content is escaped with {{ }} on the
+        server and bound with x-text on the client, never {!! !!} nor x-html
+        (RF-32).
     --}}
-    <div id="list-app" data-slug="{{ $list->slug }}" data-version="{{ $list->version }}" x-data="{ confirmingDelete: false, confirmingPurge: false, editingName: false }">
+    <div id="list-app" data-slug="{{ $list->slug }}" data-version="{{ $list->version }}"
+        x-data="listApp()">
+        <p x-show="error" x-cloak x-text="error" role="alert"
+            class="mb-3 rounded-lg bg-red-50 p-2 text-sm text-red-700" style="display:none"></p>
+
+        {{-- Sin conexión (RF-26): la última lectura sigue visible; las escrituras
+             fallan con aviso y no se encolan. --}}
+        <p x-show="offline" x-cloak role="status"
+            class="mb-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-800" style="display:none">
+            Sin conexión. Ves la última versión conocida; los cambios necesitan red.
+        </p>
+
+        {{-- Compartir (RF-34): la hoja nativa, o portapapeles + este aviso, o la
+             URL en claro si el navegador no da ninguna de las dos. --}}
+        <p x-show="shareNotice" x-cloak x-text="shareNotice" role="status"
+            class="mb-3 rounded-lg bg-green-50 p-2 text-sm text-green-800" style="display:none"></p>
+        <p x-show="shareUrl" x-cloak role="status"
+            class="mb-3 rounded-lg bg-gray-100 p-2 text-sm" style="display:none">
+            Copia este enlace: <span x-text="shareUrl" class="break-all font-mono"></span>
+        </p>
+
         <header class="mb-4">
             <div class="flex items-start justify-between gap-2">
-                <h1 class="min-w-0 flex-1 break-words text-xl font-bold" x-show="!editingName">
+                <h1 class="min-w-0 flex-1 break-words text-xl font-bold" x-show="!editingName" x-text="listName">
                     {{ $list->name }}
                 </h1>
 
-                <form action="/api/lists/{{ $list->slug }}" method="POST" class="flex min-w-0 flex-1 gap-2"
-                    x-show="editingName" style="display:none" x-on:submit.prevent="$refs.rename.submit()" x-ref="rename">
-                    @method('PATCH')
+                <form class="flex min-w-0 flex-1 gap-2" x-show="editingName" style="display:none"
+                    x-on:submit.prevent="renameList($refs.renameInput.value)">
                     <label for="rename-input" class="sr-only">Nuevo nombre de la lista</label>
-                    <input id="rename-input" name="name" type="text" value="{{ $list->name }}" maxlength="60"
-                        required class="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1 text-base">
+                    <input id="rename-input" x-ref="renameInput" name="name" type="text" value="{{ $list->name }}"
+                        maxlength="60" required
+                        class="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1 text-base">
                     <button type="submit"
                         class="shrink-0 rounded-lg bg-blue-600 px-3 py-1 text-sm font-semibold text-white">
                         Guardar
@@ -40,6 +62,20 @@
                 </div>
             </div>
 
+            <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                <button type="button" x-on:click="shareList()"
+                    class="font-medium text-blue-700 underline">
+                    Compartir enlace
+                </button>
+                <button type="button" x-show="inMyLists" x-on:click="forgetList()"
+                    class="text-gray-400 underline hover:text-blue-700">
+                    Quitar de mis listas
+                </button>
+                <span x-show="!inMyLists" x-cloak style="display:none" class="text-gray-400">
+                    Quitada de tus listas en este dispositivo.
+                </span>
+            </p>
+
             <div x-show="confirmingDelete" style="display:none"
                 class="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm" role="alertdialog"
                 aria-label="Confirmar eliminación de la lista">
@@ -47,8 +83,7 @@
                     ¿Eliminar esta lista y todos sus ítems? No se puede deshacer.
                 </p>
                 <div class="flex gap-2">
-                    <form action="/api/lists/{{ $list->slug }}" method="POST">
-                        @method('DELETE')
+                    <form x-on:submit.prevent="deleteList()">
                         <button type="submit" class="rounded-lg bg-red-600 px-3 py-1 font-semibold text-white">
                             Sí, eliminar
                         </button>
@@ -60,17 +95,25 @@
             </div>
         </header>
 
-        <form action="/api/lists/{{ $list->slug }}/items" method="POST" class="mb-4 flex gap-2">
-            <label for="new-item" class="sr-only">Nombre del ítem</label>
-            <input id="new-item" name="name" type="text" maxlength="100" required autocomplete="off"
-                placeholder="Agregar ítem…"
-                class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none">
-            <button type="submit" class="shrink-0 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white">
-                Agregar
-            </button>
+        <form class="mb-4 space-y-2" x-on:submit.prevent="addItem($event)">
+            <label for="added-by" class="sr-only">Tu nombre (quién agrega)</label>
+            <input id="added-by" name="added_by" type="text" maxlength="50" autocomplete="off"
+                x-model="author" x-on:change="saveAuthor()" placeholder="Tu nombre (opcional)"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none">
+            <div class="flex gap-2">
+                <label for="new-item" class="sr-only">Nombre del ítem</label>
+                <input id="new-item" name="name" type="text" maxlength="100" required autocomplete="off"
+                    placeholder="Agregar ítem…"
+                    class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none">
+                <button type="submit" class="shrink-0 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white">
+                    Agregar
+                </button>
+            </div>
         </form>
 
-        <ul id="item-list" class="divide-y divide-gray-200 rounded-lg border border-gray-200">
+        {{-- Pre-hydration list: server-ordered (RF-18), shown until list.js has
+             loaded the authoritative state via `show`. --}}
+        <ul id="item-list" class="divide-y divide-gray-200 rounded-lg border border-gray-200" x-show="!ready">
             @forelse ($items as $item)
                 <li class="flex items-center gap-3 px-3 py-3 {{ $item->is_purchased ? 'text-gray-400 line-through' : '' }}"
                     data-item-id="{{ $item->id }}">
@@ -89,8 +132,39 @@
             @endforelse
         </ul>
 
+        {{-- Client-rendered list. All user content bound with x-text (RF-32). --}}
+        <ul id="client-item-list" class="divide-y divide-gray-200 rounded-lg border border-gray-200" x-show="ready"
+            x-cloak style="display:none">
+            <template x-for="item in items" :key="item.id">
+                <li class="flex items-center gap-3 px-3 py-3" :data-item-id="item.id"
+                    :class="item.is_purchased ? 'text-gray-400 line-through' : ''">
+                    <input type="checkbox" class="h-5 w-5 shrink-0 rounded border-gray-300"
+                        :checked="item.is_purchased" x-on:change="togglePurchased(item)"
+                        :aria-label="(item.is_purchased ? 'Desmarcar ' : 'Marcar ') + item.name">
+                    <span x-show="!item.editing" x-text="item.name" x-on:click="startEdit(item)"
+                        class="min-w-0 flex-1 break-words"></span>
+                    <input x-show="item.editing" x-model="item.draftName" type="text" maxlength="100"
+                        x-on:keydown.enter.prevent="commitEdit(item)" x-on:blur="commitEdit(item)"
+                        x-on:keydown.escape="item.editing = false"
+                        class="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 text-base">
+                    <span x-show="item.quantity && !item.editing" x-text="item.quantity"
+                        class="shrink-0 text-sm text-gray-500"></span>
+                    <span x-show="item.added_by && !item.editing" x-text="item.added_by"
+                        class="shrink-0 text-xs text-gray-400"></span>
+                    <button type="button" x-on:click="removeItem(item)"
+                        class="shrink-0 px-1 text-sm text-gray-400 hover:text-red-600"
+                        :aria-label="'Eliminar ' + item.name">
+                        &times;
+                    </button>
+                </li>
+            </template>
+            <li x-show="items.length === 0" class="px-3 py-6 text-center text-sm text-gray-500">
+                Esta lista está vacía. Agrega el primer ítem arriba.
+            </li>
+        </ul>
+
         @if ($items->contains('is_purchased', true))
-            <div class="mt-4">
+            <div class="mt-4" x-show="hasPurchased">
                 <button type="button" x-on:click="confirmingPurge = true"
                     class="text-sm text-gray-500 underline hover:text-red-600">
                     Limpiar comprados
@@ -103,7 +177,7 @@
                         ¿Quitar todos los ítems ya comprados de la lista?
                     </p>
                     <div class="flex gap-2">
-                        <form action="/api/lists/{{ $list->slug }}/items/purge-purchased" method="POST">
+                        <form x-on:submit.prevent="purgePurchased()">
                             <button type="submit" class="rounded-lg bg-gray-800 px-3 py-1 font-semibold text-white">
                                 Sí, limpiar
                             </button>
