@@ -113,28 +113,28 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       `shopping_lists` ni `items` (incl. `withTrashed`) para esa lista; acceso
       posterior al slug → 404 con cuerpo y headers idénticos al de un slug que
       nunca existió.
-- [ ] T15. `ItemController@store` (usa T7: lock de lista, tope de 200 en el
+- [x] T15. `ItemController@store` (usa T7: lock de lista, tope de 200 en el
       controlador, sella `version`). (RF-10, RF-11, RF-12, RF-13, RF-17, RF-20,
       RF-32)
       Hecho cuando: test — 201 con el ítem (`is_purchased=false`, forma de
       `ItemResource`); mismo nombre dos veces coexiste; con 199 sembrados el 200
       entra, con 200 sembrados → 422 con mensaje de límite en español; un `name`
       con `<script>` se guarda literal.
-- [ ] T16. `ItemController@update` (T7; `->fill()` solo con campos presentes;
+- [x] T16. `ItemController@update` (T7; `->fill()` solo con campos presentes;
       marcado sin confirmación). (RF-14, RF-15, RF-25)
       Hecho cuando: test — `PATCH {is_purchased:true}` → 200 y persiste; dos
       `PATCH` seguidos al mismo ítem, uno `{name}` y otro `{is_purchased:true}`,
       dejan ambos cambios; `PATCH /api/lists/A/items/{id-de-B}` → 404.
-- [ ] T17. `ItemController@destroy` (soft delete vía T7, sella `version`). (RF-16)
+- [x] T17. `ItemController@destroy` (soft delete vía T7, sella `version`). (RF-16)
       Hecho cuando: test — `DELETE` → 204, fila con `deleted_at` y `version`
       sellado, ausente en `show`.
-- [ ] T18. `ItemController@purgePurchased`
+- [x] T18. `ItemController@purgePurchased`
       (`POST /api/lists/{slug}/items/purge-purchased`, vía T7; evalúa "comprado"
       contra la BD). (RF-19)
       Hecho cuando: test — solo los comprados quedan con `deleted_at`, responde
       `deleted_ids`, los no comprados intactos; sin comprados → `200` con
       `deleted_ids: []` y `version` sin cambiar.
-- [ ] T19. `ItemController@sync`
+- [x] T19. `ItemController@sync`
       (`GET /api/lists/{slug}/items?cursor=`): valida `cursor` (entero, 0..
       `version`); delta con `version > cursor` (`items` activos +
       `deleted_ids`), o carga completa (solo activos, `deleted_ids: []`) si falta
@@ -144,7 +144,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       `version` previa devuelve el modificado en `items` y el borrado en
       `deleted_ids` (solo `id`); segunda llamada con el nuevo cursor →
       `items: []`, `deleted_ids: []`; sobre una lista eliminada → 404 (RF-27).
-- [ ] T20. Casos límite de `sync`: `cursor` ausente / no entero / > `version` →
+- [x] T20. Casos límite de `sync`: `cursor` ausente / no entero / > `version` →
       carga completa; `cursor` de otra lista → carga completa o delta inocuo;
       ítem creado y borrado entre dos cursores → solo en `deleted_ids`; el corte
       no usa ningún reloj. (RF-24)
