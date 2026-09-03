@@ -8,7 +8,9 @@
     <title>@yield('title', 'Lista de compras')</title>
 
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="icon" href="{{ asset('icons/icon-192.png') }}">
+    <link rel="icon" sizes="any" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/icon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/list.js'])
