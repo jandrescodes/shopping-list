@@ -70,13 +70,18 @@ La app queda en `http://localhost:8000`.
 
 ## Comandos
 
-| Acción                 | Comando                       |
-| ---------------------- | ----------------------------- |
-| Servidor de desarrollo | `php artisan serve`           |
-| Tests API/persistencia | `php artisan test` (Pest 3.8) |
-| Tests de navegador     | `npx playwright test`         |
-| Lint/formato           | `php artisan pint`            |
-| Compilar assets        | `npm run build`               |
+| Acción                 | Comando                                               |
+| ---------------------- | ----------------------------------------------------- |
+| Servidor de desarrollo | `php artisan serve`                                   |
+| Tests API/persistencia | `php artisan test` (Pest 3.8)                         |
+| Tests de navegador     | `npx playwright test`                                 |
+| Lint/formato           | `php artisan pint`                                    |
+| Compilar assets        | `npm run build`                                       |
+| Purgar lápidas         | `php artisan items:purge-tombstones --before=<fecha>` |
+
+Los tests de API corren contra **MySQL**, no SQLite: copia
+`.env.testing.example` a `.env.testing`, crea la BD `shopping_list_testing` y
+ejecuta `npx playwright install chromium` la primera vez.
 
 > El entorno usa PHP 8.2, que fija el techo de herramientas: Pest 4 y
 > `pest-plugin-browser` exigen PHP 8.3+, así que los tests de la capa de cliente
@@ -93,15 +98,19 @@ resources/views/             Vistas Blade
 public/manifest.json         Manifest PWA
 public/sw.js                 Service worker
 lang/es/                     Textos en español
-docs/                        Constitución y roadmap del proyecto
+docs/                        Constitución, roadmap y despliegue
 specs/                       Especificaciones por feature (SDD)
+.github/workflows/           CI (tests + Pint) y deploy a Hostinger
+CHANGELOG.md                 Historial de versiones
 ```
 
 ## Documentación
 
+- [`CHANGELOG.md`](CHANGELOG.md) — historial de versiones (Keep a Changelog).
 - [`AGENTS.md`](AGENTS.md) — convenciones, comandos y arquitectura (fuente única).
 - [`docs/constitution.md`](docs/constitution.md) — principios innegociables.
 - [`docs/roadmap.md`](docs/roadmap.md) — estado y backlog.
+- [`docs/deploy.md`](docs/deploy.md) — despliegue en hosting compartido.
 - [`specs/`](specs/) — especificaciones por feature (`spec.md`, `plan.md`,
   `tasks.md`, `validation.md`).
 

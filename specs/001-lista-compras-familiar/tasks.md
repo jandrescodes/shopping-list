@@ -273,21 +273,22 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 _Checkboxes sueltos, fuera de la numeración `Tn` — no se implementan con
 `/sdd:implement`._
 
-- [ ] Suite completa verde: `php artisan test` y `npx playwright test` sin
-      fallos, y `php artisan pint --test` sin cambios.
-- [ ] Verificación de todos los RF: `/sdd:validate` →
-      `specs/001-lista-compras-familiar/validation.md` (todos los RF cubiertos o
-      justificados).
-- [ ] `docs/deploy.md`: despliegue subiendo archivos por `rsync`/`scp` sobre la
-      conexión SSH del runner (sin `git clone`/`git pull` en el servidor),
-      **excluyendo `docs/` y `specs/`**, `composer install --no-dev`, `.env` con
-      MySQL de Hostinger, `CACHE_STORE=database`, `migrate --force`,
-      `npm run build`, HTTPS forzado, permisos de `storage/`, nota de
-      `items:purge-tombstones` manual. (RNF HTTPS, RF-16)
-- [ ] Mover la feature 001 a "Hecho ✅" en `docs/roadmap.md`, enlazando la
-      carpeta (lo hace `/sdd:validate` al cerrar).
-- [ ] Convención nueva descubierta durante la implementación → anotarla en
-      `AGENTS.md`.
+- [x] Suite completa verde: `php artisan test` (119 passed) y `npx playwright
+      test` (22 passed) sin fallos, y `vendor/bin/pint --test` sin cambios.
+- [x] Verificación de todos los RF: `/sdd:validate` →
+      `specs/001-lista-compras-familiar/validation.md` (todos los RF cubiertos;
+      veredicto: spec cumplida).
+- [x] `docs/deploy.md`: despliegue por `rsync` sobre la conexión SSH del runner
+      (sin git en el servidor), excluyendo `docs/`/`specs/`/`tests/`,
+      `composer install --no-dev`, `.env` con MySQL de Hostinger,
+      `CACHE_STORE=database`, `migrate --force`, `npm run build`, HTTPS por
+      `APP_URL` + redirección forzada, permisos de `storage/`, purga manual de
+      lápidas. (RNF HTTPS, RF-16)
+- [x] Feature 001 movida a "Hecho ✅" en `docs/roadmap.md`.
+- [x] Convenciones descubiertas durante la implementación: ya anotadas en
+      `AGENTS.md` sobre la marcha (driver de sesión `cookie` para Playwright,
+      `E2E_RELAXED_LIMITS`, locators Playwright por clase de fondo, PHP 8.2 como
+      techo). Nada nuevo pendiente en el cierre.
 
 ## Cobertura RF → tarea
 

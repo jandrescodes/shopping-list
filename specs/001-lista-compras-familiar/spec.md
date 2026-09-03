@@ -1,6 +1,6 @@
 # Spec 001 — Lista de compras compartida
 
-**Estado:** en curso
+**Estado:** cerrada — validada en `validation.md` (2026-09-03)
 
 ## Contexto y objetivo
 

@@ -47,7 +47,8 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - URLs públicas de una lista por `slug`, nunca por `id`.
 - Interfaz mobile-first. Un solo tema por ahora; modo oscuro es mejora futura.
 - Package manager: `npm` (no pnpm). Dependencias de front con versión exacta
-  pineada (`npm i --save-exact`); a Hostinger solo sube `public/build/`.
+  pineada (`npm i --save-exact`); del front, a Hostinger sube `public/build/`
+  (compilado en el runner), nunca `node_modules/`.
 
 ## Archivos / módulos clave
 
@@ -56,6 +57,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - `routes/api.php`
 - `resources/js/list.js` (Alpine, versión pineada), `vite.config.js` (`input`)
 - `public/manifest.json`, `public/sw.js`
+- `.github/workflows/ci.yml` (tests + Pint en push/PR a `main`),
+  `.github/workflows/deploy.yml` (deploy a Hostinger por `rsync` sobre SSH;
+  release publicado o `workflow_dispatch`); `.env.production.example`
 - `bootstrap/app.php`: render de excepciones. Todo `NotFoundHttpException` en
   `api/*` (o que espera JSON) responde `404 {"message":"Not Found"}` uniforme —
   lista borrada, slug inexistente o ruta desconocida son indistinguibles (RF-4).
