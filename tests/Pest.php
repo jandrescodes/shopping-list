@@ -9,8 +9,10 @@ use Tests\TestCase;
 | Test Case
 |--------------------------------------------------------------------------
 |
-| Every feature test runs against a fresh in-memory SQLite database
-| (see phpunit.xml). Browser-level checks for the client layer are run
+| Every feature test runs against a fresh MySQL database defined in
+| .env.testing (copy .env.testing.example). MySQL, not SQLite, so the
+| row locks in App\Support\ListVersion and the real column types are
+| exercised. Browser-level checks for the client layer are run
 | separately with Playwright, not through a Pest browser plugin.
 |
 */

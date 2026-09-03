@@ -11,7 +11,10 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 ## Comandos
 
 - Ejecutar: `php artisan serve`
-- Tests API/persistencia: `php artisan test` (Pest 3.8)
+- Tests API/persistencia: `php artisan test` (Pest 3.8). Corren contra MySQL,
+  no SQLite: copiar `.env.testing.example` a `.env.testing` y crear la BD
+  `shopping_list_testing` una vez. Se usa MySQL para ejercitar los row locks
+  de `App\Support\ListVersion` y los tipos/largos de columna reales.
 - Tests de navegador (capa de cliente): `npx playwright test` (Playwright CLI/MCP)
 - Lint/formato: `php artisan pint`
 - Assets: `npm run build`
