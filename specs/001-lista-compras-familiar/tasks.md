@@ -170,15 +170,15 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Frontend — Vistas
 
-- [ ] T24. `resources/views/layout.blade.php`: layout mobile-first compartido,
+- [x] T24. `resources/views/layout.blade.php`: layout mobile-first compartido,
       `<meta>` de viewport y `theme-color`, `<link rel="manifest">`, registro del
       service worker, `@vite(['resources/js/list.js', ...])`. (RF-28)
       Hecho cuando: `GET /` → 200 e incluye el `<link rel="manifest">` y el
       script de registro del SW.
-- [ ] T25. `routes/web.php` + `home.blade.php`: `GET /` con form de crear lista y
+- [x] T25. `routes/web.php` + `home.blade.php`: `GET /` con form de crear lista y
       sección "mis listas" (poblada por JS desde `localStorage`). (RF-1, RF-6)
       Hecho cuando: `GET /` → 200 y el HTML contiene el formulario de creación.
-- [ ] T26. `list.blade.php` mobile-first: cabecera con nombre editable, acciones
+- [x] T26. `list.blade.php` mobile-first: cabecera con nombre editable, acciones
       renombrar / eliminar lista (diálogo de confirmación), input de alta, lista
       de ítems (comprados tachados y al final), botón "limpiar comprados" con
       confirmación; todo el contenido de usuario con `{{ }}`. (RF-3, RF-9, RF-18,
@@ -186,7 +186,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       Hecho cuando: `GET /l/{slug}` → 200 con esos elementos en el DOM; slug
       inexistente → 404; un ítem con `<script>` en el nombre aparece escapado en
       el HTML.
-- [ ] T27. `resources/views/offline.blade.php` + `GET /offline`: página offline
+- [x] T27. `resources/views/offline.blade.php` + `GET /offline`: página offline
       mínima estática. (RF-29)
       Hecho cuando: test — `GET /offline` → 200 con un mensaje de "sin conexión".
 

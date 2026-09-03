@@ -19,5 +19,6 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(fn () => $this->withoutVite())
     ->afterEach(fn () => ShoppingList::$slugGenerator = null)
     ->in('Feature');
