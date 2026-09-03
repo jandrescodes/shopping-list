@@ -1,0 +1,179 @@
+name: Deploy a Hostinger
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Tag o rama a desplegar (ej. 1.0.0)"
+        required: true
+        default: "main"
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # ── Tests antes de desplegar (misma base que CI) ───────────────────────
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: shopping_list_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo_mysql, bcmath, intl
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v6
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: cp .env.testing.example .env.testing
+
+      - name: Run tests
+        run: php artisan test
+        env:
+          DB_PASSWORD: root
+
+  # ── Build + subida por rsync sobre SSH (sin git en el servidor) ────────
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Verificar secretos de deploy
+        env:
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
+        run: |
+          missing=""
+          [ -z "$SSH_KEY" ]  && missing="$missing HOSTINGER_SSH_KEY"
+          [ -z "$SSH_HOST" ] && missing="$missing HOSTINGER_SSH_HOST"
+          [ -z "$SSH_USER" ] && missing="$missing HOSTINGER_SSH_USER"
+          [ -z "$APP_PATH" ] && missing="$missing HOSTINGER_APP_PATH"
+          if [ -n "$missing" ]; then
+            echo "::error::Faltan secretos del entorno 'production':$missing"
+            echo "Configúralos en Settings → Environments → production (ver docs/deploy.md)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo_mysql, bcmath, intl
+          coverage: none
+
+      - name: Install PHP dependencies (producción)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH
+        env:
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Subir archivos (rsync)
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT" \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='docs/' \
+            --exclude='specs/' \
+            --exclude='tests/' \
+            --exclude='node_modules/' \
+            --exclude='.env' \
+            --include='.env.production.example' \
+            --exclude='.env.*' \
+            --exclude='/storage/' \
+            --exclude='auth.json' \
+            --exclude='playwright.config.js' \
+            --exclude='phpunit.xml' \
+            ./ "$SSH_USER@$SSH_HOST:$APP_PATH/"
+
+      - name: Tareas post-deploy
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o ConnectTimeout=60 \
+            "$SSH_USER@$SSH_HOST" \
+            "cd '$APP_PATH' && \
+             php artisan migrate --force && \
+             php artisan config:cache && \
+             php artisan route:cache && \
+             php artisan view:cache && \
+             php artisan optimize"
+
+      - name: Health check
+        env:
+          DOMAIN: ${{ secrets.HOSTINGER_DOMAIN }}
+        run: |
+          if [ -z "$DOMAIN" ]; then
+            echo "::notice::HOSTINGER_DOMAIN no configurado, se omite el health check."
+            exit 0
+          fi
+          for i in $(seq 1 6); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://$DOMAIN/up" || true)
+            echo "Intento $i: HTTP $code"
+            [ "$code" = "200" ] && echo "Health check OK" && exit 0
+            sleep 5
+          done
+          echo "::error::Health check fallido tras 6 intentos"
+          exit 1

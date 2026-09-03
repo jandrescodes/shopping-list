@@ -74,7 +74,13 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   conflicto entre `docs/`/`specs/` y este archivo, este archivo es la fuente
   operativa del **código** y `docs/`/`specs/` la capa de **planificación**.
 - `docs/` y `specs/` se versionan pero **no se despliegan**: quedan fuera del
-  `rsync`/`scp` de despliegue y del docroot.
+  `rsync` de despliegue y del docroot.
+- **Despliegue**: `.github/workflows/deploy.yml` (release publicado o
+  `workflow_dispatch`). Construye `vendor/` y `public/build/` en el runner y los
+  sube por `rsync` sobre SSH; el servidor **nunca** hace `git pull` ni corre
+  `composer`. Pasos y post-deploy en `docs/deploy.md`. Al tocar cualquier
+  workflow, verifica de paso que sus `uses:` no quedaron atrás y bumpéalos en el
+  mismo commit.
 - No subas `.env`. No asumas colas ni schedulers sin verificar el plan de hosting.
 - No añadas WebSockets/Reverb ni autenticación sin cambiar antes la constitución.
 
