@@ -2,7 +2,8 @@
 
 ## Hecho ✅
 
-- **Lista de compras familiar** (parcial) — T0-T31 + T35-T36 completados:
+- **Lista de compras familiar** (parcial) — T0-T36 completados (toda la
+  numeración `Tn`; falta solo el bloque "Cierre de la feature"):
   modelos, factories, ItemResource, escritura versionada, Form Requests,
   `ShoppingListController` (CRUD de listas) e `ItemController` completo
   (`store` con tope de 200, `update` campo por campo, `destroy` soft delete,
@@ -25,15 +26,23 @@
   "sin conexión" y última lectura visible, escrituras fallan con aviso sin
   encolar, `online` dispara resync inmediato; cambio fase 8 — navegación al home
   (T35: `<nav>` "Mis listas" en el layout, RF-33) y compartir enlace (T36:
-  `navigator.share` → portapapeles → URL en claro, RF-34)
-  (111 Pest + 22 Playwright verdes).
+  `navigator.share` → portapapeles → URL en claro, RF-34); PWA parcial
+  (T32: `public/manifest.json` + iconos 32/192/512 + `favicon.ico`, servidos
+  también por ruta para tests y `artisan serve`); service worker
+  (T33: `public/sw.js` — precache del shell + assets Vite leídos de
+  `build/manifest.json`, cache-first para estáticos, red primero para navegación
+  con fallback a `/offline`, solo-red para `/api/*`); mantenimiento
+  (T34: comando `php artisan items:purge-tombstones --before=<fecha>` que borra
+  físicamente las lápidas anteriores a la fecha y aborta sin `--before`)
+  (119 Pest + 22 Playwright verdes).
   → `specs/001-lista-compras-familiar/tasks.md`
 
 ## Siguiente 🔜
 
-- **Lista de compras familiar** (continuación) — T32-T34 pendientes: PWA
-  (`manifest.json`, iconos, `sw.js`) y comando de purga de lápidas.
-  → `specs/001-lista-compras-familiar/`
+- **Lista de compras familiar** — cierre de la feature: suite completa verde +
+  `pint --test`, `/sdd:validate` (validation.md), `docs/deploy.md`, mover a
+  "Hecho ✅".
+  → `specs/001-lista-compras-familiar/tasks.md` (bloque "Cierre de la feature")
 
 ## Backlog / ideas 💡
 

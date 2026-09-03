@@ -227,14 +227,14 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## PWA
 
-- [ ] T32. `public/icons/icon-192.png` y `icon-512.png` (iconos reales) +
+- [x] T32. `public/icons/icon-192.png` y `icon-512.png` (iconos reales) +
       `public/manifest.json` (`name`, `short_name`, `icons` 192 y 512,
       `theme_color`, `background_color`, `display:standalone`, `start_url:"/"`).
       (RF-28)
       Hecho cuando: test — `GET /manifest.json` → 200 con mime correcto y las
       claves citadas; `GET /icons/icon-192.png` y `/icons/icon-512.png` → 200 con
       `Content-Type: image/png`.
-- [ ] T33. `public/sw.js`: precache del app shell (layout, JS/CSS compilados,
+- [x] T33. `public/sw.js`: precache del app shell (layout, JS/CSS compilados,
       iconos, `/offline`); cache-first para estáticos, network-only para
       `/api/*`, fallback a `/offline` sin shell ni red; registro en el layout.
       (RF-26, RF-29)
@@ -244,7 +244,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Mantenimiento
 
-- [ ] T34. Comando `php artisan items:purge-tombstones --before=<fecha>`:
+- [x] T34. Comando `php artisan items:purge-tombstones --before=<fecha>`:
       `forceDelete` de ítems `onlyTrashed` con `deleted_at` anterior a la fecha;
       aborta sin `--before`; reporta el conteo. (RF-16)
       Hecho cuando: test — con lápidas viejas y recientes, el comando borra solo
