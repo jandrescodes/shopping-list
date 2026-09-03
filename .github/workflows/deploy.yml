@@ -155,11 +155,12 @@ jobs:
           ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o ConnectTimeout=60 \
             "$SSH_USER@$SSH_HOST" \
             "cd '$APP_PATH' && \
-             php artisan migrate --force && \
-             php artisan config:cache && \
-             php artisan route:cache && \
-             php artisan view:cache && \
-             php artisan optimize"
+             PHP=/opt/alt/php82/usr/bin/php && \
+             \$PHP artisan migrate --force && \
+             \$PHP artisan config:cache && \
+             \$PHP artisan route:cache && \
+             \$PHP artisan view:cache && \
+             \$PHP artisan optimize"
 
       - name: Health check
         env:
