@@ -23,10 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->booted(function (): void {
         // Per-IP request limits (constitution 5, RNF). Generous ceilings for
-        // real family use; only a defensive cap against abuse.
-        RateLimiter::for('lists-create', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
-        RateLimiter::for('writes', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
-        RateLimiter::for('sync', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
+        // real family use; only a defensive cap against abuse. The browser
+        // suite drives a long-lived `php artisan serve` whose limiter state
+        // accumulates across the whole run, so it opts out with E2E_RELAXED_LIMITS
+        // (set in playwright.config.js); the Pest suite keeps the real limits.
+        $relaxed = (bool) env('E2E_RELAXED_LIMITS', false);
+
+        RateLimiter::for('lists-create', fn (Request $request) => Limit::perHour($relaxed ? 10000 : 10)->by($request->ip()));
+        RateLimiter::for('writes', fn (Request $request) => Limit::perMinute($relaxed ? 100000 : 120)->by($request->ip()));
+        RateLimiter::for('sync', fn (Request $request) => Limit::perMinute($relaxed ? 100000 : 60)->by($request->ip()));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // RF-4: a missing list — deleted or never created — and any unknown API
