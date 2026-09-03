@@ -92,22 +92,22 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## API — Controladores
 
-- [ ] T11. `ShoppingListController@store`. (RF-1, RF-2)
+- [x] T11. `ShoppingListController@store`. (RF-1, RF-2)
       Hecho cuando: test — `POST /api/lists {name}` → 201 con `{slug,name,url}`,
       `url` absoluta y arranca por `config('app.url')`; nombre inválido → 422.
-- [ ] T12. `ShoppingListController@show` con `ItemResource`: devuelve
+- [x] T12. `ShoppingListController@show` con `ItemResource`: devuelve
       `{slug, name, version, items[]}` con ítems ordenados por el servidor (no
       comprados primero, luego comprados; cada grupo por `created_at` asc). (RF-3,
       RF-4, RF-18)
       Hecho cuando: test — con ítems comprados y no comprados en orden mezclado,
       la respuesta trae los no comprados primero y cada grupo por creación asc;
       incluye `version`; slug inexistente → 404.
-- [ ] T13. `ShoppingListController@update` (renombra vía T7, conserva slug,
+- [x] T13. `ShoppingListController@update` (renombra vía T7, conserva slug,
       incrementa `version`). (RF-7, RF-25)
       Hecho cuando: test — `PATCH` cambia `name`, `slug` intacto, `version` +1;
       dos `PATCH` de nombre seguidos → gana el último, `version` +2; 404 si no
       existe.
-- [ ] T14. `ShoppingListController@destroy`: borrado **físico** de la lista y de
+- [x] T14. `ShoppingListController@destroy`: borrado **físico** de la lista y de
       todos sus ítems (activos y lápidas). (RF-4, RF-8, RF-9)
       Hecho cuando: test — `DELETE` → 204; no queda ninguna fila en
       `shopping_lists` ni `items` (incl. `withTrashed`) para esa lista; acceso

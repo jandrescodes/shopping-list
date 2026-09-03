@@ -10,3 +10,11 @@
 | concrete routes are added in task T21.
 |
 */
+
+use App\Http\Controllers\Api\ShoppingListController;
+use Illuminate\Support\Facades\Route;
+
+Route::post('/lists', [ShoppingListController::class, 'store']);
+Route::get('/lists/{list}', [ShoppingListController::class, 'show']);
+Route::patch('/lists/{list}', [ShoppingListController::class, 'update']);
+Route::delete('/lists/{list}', [ShoppingListController::class, 'destroy']);

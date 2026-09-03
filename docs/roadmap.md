@@ -2,14 +2,15 @@
 
 ## Hecho ✅
 
-- **Lista de compras familiar** (parcial) — T0-T6 completados:
-  modelos, factories, ItemResource y tests (23 Pest verdes).
+- **Lista de compras familiar** (parcial) — T0-T14 completados:
+  modelos, factories, ItemResource, escritura versionada, Form Requests y
+  `ShoppingListController` (CRUD de listas) (57 Pest verdes).
   → `specs/001-lista-compras-familiar/tasks.md`
 
 ## Siguiente 🔜
 
-- **Lista de compras familiar** (continuación) — T7-T33 pendientes:
-  escritura versionada, Form Requests, controladores API, rutas,
+- **Lista de compras familiar** (continuación) — T15-T33 pendientes:
+  `ItemController` (ítems, sync, purgas), rutas + rate limiting, middleware,
   frontend/PWA.
   → `specs/001-lista-compras-familiar/`
 

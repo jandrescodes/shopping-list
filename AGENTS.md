@@ -39,6 +39,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - `routes/api.php`
 - `resources/js/list.js` (Alpine, versión pineada), `vite.config.js` (`input`)
 - `public/manifest.json`, `public/sw.js`
+- `bootstrap/app.php`: render de excepciones. Todo `NotFoundHttpException` en
+  `api/*` (o que espera JSON) responde `404 {"message":"Not Found"}` uniforme —
+  lista borrada, slug inexistente o ruta desconocida son indistinguibles (RF-4).
 
 ## Reglas
 
@@ -47,6 +50,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - Nuevas convenciones/arquitectura se documentan aquí (`AGENTS.md`), no en
   `CLAUDE.md`.
 - No modifiques archivos dentro de `specs/` salvo petición explícita.
+- Al commitear un bloque de tareas, actualiza en `docs/roadmap.md` los rangos
+  `Tn` de "Hecho parcial" y "Siguiente 🔜". El paso a "Hecho ✅" del cierre de
+  la feature lo hace `/sdd:validate`.
 - **Precedencia**: `docs/constitution.md` manda sobre specs y planes. Ante
   conflicto entre `docs/`/`specs/` y este archivo, este archivo es la fuente
   operativa del **código** y `docs/`/`specs/` la capa de **planificación**.
