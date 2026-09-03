@@ -152,18 +152,18 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Rutas y middleware
 
-- [ ] T21. `routes/api.php`: grupo sin auth con las 9 rutas del contrato; ítems
+- [x] T21. `routes/api.php`: grupo sin auth con las 9 rutas del contrato; ítems
       anidados con `->scopeBindings()`; sin ninguna ruta que enumere listas.
       (RF-5, RF-30, RF-31)
       Hecho cuando: `php artisan route:list` muestra las 9 rutas, ninguna con
       `auth`, ninguna `GET /api/lists` de índice; test — 3 peticiones al mismo
       slug sin sesión → 3×200.
-- [ ] T22. Rate limiting: definir limitadores `lists-create` (10/h),
+- [x] T22. Rate limiting: definir limitadores `lists-create` (10/h),
       `writes` (120/min), `sync` (60/min) por IP en `bootstrap/app.php` y
       aplicarlos con `throttle:` a los grupos de rutas. (RNF límite de peticiones)
       Hecho cuando: test — la 11ª `POST /api/lists` desde la misma IP en 1 h →
       429; `sync` 61/min → 429; una escritura 121/min → 429.
-- [ ] T23. Middleware `NoIndex` (`X-Robots-Tag: noindex, nofollow`) en las rutas
+- [x] T23. Middleware `NoIndex` (`X-Robots-Tag: noindex, nofollow`) en las rutas
       web de lista + `public/robots.txt` con `Disallow: /l/`. (RNF no indexable)
       Hecho cuando: test — `GET /l/{slug}` trae el header; `GET /robots.txt`
       contiene `Disallow: /l/`.
