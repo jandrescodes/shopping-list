@@ -38,11 +38,11 @@
 | `routes/api.php`                                                   | Endpoints REST bajo `/api`, sin middleware de auth, con `throttle` por grupo                            | RF-30, RF-31, RNF límite de peticiones                       |
 | `routes/web.php`                                                   | `GET /` (crear/recordadas) y `GET /l/{slug}` (vista de lista)                                           | RF-3, RF-6                                                   |
 | `routes/console.php` o `bootstrap/app.php`                         | Registro del comando de purga (sin schedule)                                                            | RF-16                                                        |
-| `resources/views/layout.blade.php`                                 | Layout mobile-first compartido; registra el service worker; `<meta>` PWA                                | RF-28                                                        |
+| `resources/views/layout.blade.php`                                 | Layout mobile-first compartido; registra el service worker; `<meta>` PWA; `<nav>` "Mis listas" al home salvo en `/`  | RF-28, RF-33                                        |
 | `resources/views/home.blade.php`                                   | Formulario de creación + accesos a listas recordadas                                                    | RF-1, RF-6                                                   |
-| `resources/views/list.blade.php`                                   | Vista de una lista; monta Alpine; escapa todo con `{{ }}`                                               | RF-3, RF-15, RF-18, RF-32                                    |
+| `resources/views/list.blade.php`                                   | Vista de una lista; monta Alpine; escapa todo con `{{ }}`; botón "Compartir"                            | RF-3, RF-15, RF-18, RF-32, RF-33, RF-34                      |
 | `resources/views/offline.blade.php`                                | Página offline mínima estática                                                                          | RF-29                                                        |
-| `resources/js/list.js` (Alpine)                                    | Render, alta/edición/marcado/borrado, polling, memoria local, avisos sin conexión                       | RF-6, RF-15, RF-19, RF-21, RF-22, RF-25, RF-26, RF-27, RF-32 |
+| `resources/js/list.js` (Alpine)                                    | Render, alta/edición/marcado/borrado, polling, memoria local, avisos sin conexión, compartir enlace     | RF-6, RF-15, RF-19, RF-21, RF-22, RF-25, RF-26, RF-27, RF-32, RF-34 |
 | `public/manifest.json`                                             | Manifest PWA (nombre, iconos 192/512, `theme_color`, `display:standalone`)                              | RF-28                                                        |
 | `public/icons/icon-192.png`, `icon-512.png`                        | Ficheros de icono reales                                                                                | RF-28                                                        |
 | `public/sw.js` + registro en layout                                | App shell cache-first; `/api/*` siempre a red; sirve `offline` sin caché                                | RF-26, RF-29                                                 |
@@ -236,6 +236,17 @@ Sin scheduler ni cron (constitución 5). Documentado en `docs/deploy.md`.
 - **`GET /l/{slug}` responde 404 directo** si el slug no existe (no 200 con HTML
   y "no encontrado" en JS) → coherente con RF-4; menos superficie. Se recoge en
   la spec vía esta decisión de plan.
+- **Navegación al home vía `<nav>` en el layout con `@unless(request()->is('/'))`**
+  (RF-33) vs enlace por vista → una sola definición, aparece en toda página menos
+  el home; test de contenido Pest. No añade rutas: `/` ya existía.
+- **Compartir con `navigator.share` → `navigator.clipboard` → URL en claro**
+  (RF-34) vs solo copiar / librería de share → API nativa del navegador, sin
+  dependencia (constitución 1); en móvil abre la hoja del SO. Cadena de
+  degradación: sin Web Share (p. ej. escritorio) copia al portapapeles y avisa;
+  sin Clipboard API (contexto no seguro) muestra la URL seleccionable. Se
+  comparte `window.location.href` (lleva el `slug`, RF-5). `AbortError` al
+  cancelar la hoja se traga en silencio. 100 % cliente: no toca API, va offline.
+  Test de navegador Playwright con `navigator.share`/`clipboard` interceptados.
 
 ## Contrato de interfaz
 
@@ -391,8 +402,8 @@ Pest (Pest 4 / `pest-plugin-browser` no son instalables en PHP 8.2).
 | `routes/api.php` sin auth + `throttle`                   | RF-5, RF-30, RF-31, RNF límite de peticiones                               |
 | Middleware `NoIndex` + `robots.txt`                      | RNF no indexable                                                           |
 | Comando `items:purge-tombstones`                         | RF-16                                                                      |
-| `list.js` (Alpine)                                       | RF-6, RF-15, RF-18, RF-19, RF-21, RF-22, RF-23, RF-25, RF-26, RF-27, RF-32 |
-| Vistas Blade + layout (escape `{{ }}`)                   | RF-3, RF-9, RF-18, RF-19, RF-32                                            |
+| `list.js` (Alpine)                                       | RF-6, RF-15, RF-18, RF-19, RF-21, RF-22, RF-23, RF-25, RF-26, RF-27, RF-32, RF-34 |
+| Vistas Blade + layout (escape `{{ }}`)                   | RF-3, RF-9, RF-18, RF-19, RF-32, RF-33                                     |
 | `manifest.json` + iconos + `sw.js` + `offline`           | RF-28, RF-29                                                               |
 | `lang/es/validation.php`                                 | constitución 8, RNF idioma                                                 |
 

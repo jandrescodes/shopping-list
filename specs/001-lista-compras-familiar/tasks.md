@@ -192,7 +192,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
 
 ## Frontend — Alpine
 
-- [ ] T28. `list.js` — núcleo: carga inicial vía `show`; render reactivo con
+- [x] T28. `list.js` — núcleo: carga inicial vía `show`; render reactivo con
       Alpine usando `x-text` para todo el contenido de usuario; alta / edición /
       marcado / borrado que esperan la respuesta de la API antes de tocar la
       vista (sin UI optimista); en cada edición envía **solo los campos que
@@ -201,7 +201,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       borrado se reflejan en la UI tras responder la API; al editar solo el
       nombre el `PATCH` lleva solo `{name}`; un `name` con `<img onerror>` se
       muestra como texto.
-- [ ] T29. `list.js` — memoria local: recuerda el enlace abierto y el nombre de
+- [x] T29. `list.js` — memoria local: recuerda el enlace abierto y el nombre de
       "quién agrega" en `localStorage`; acción "quitar de mis listas"; poda al
       recibir 404; refresca el nombre guardado tras abrir con éxito; tope de 20.
       (RF-6, RF-21)
@@ -209,7 +209,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       "quitar" la borra; abrir un slug 404 la poda; renombrar refresca el nombre;
       la 21ª lista descarta la más antigua; el nombre de "quién agrega" se
       propone editable.
-- [ ] T30. `list.js` — polling: cada 3–4 s llama a `sync` con el último `cursor`,
+- [x] T30. `list.js` — polling: cada 3–4 s llama a `sync` con el último `cursor`,
       fusiona `items` por `id`, quita `deleted_ids`, recoloca por la regla de
       orden de RF-18; pausa con `visibilitychange` y reanuda con consulta
       inmediata al volver al foco; si `sync` → 404 muestra "esta lista ya no
@@ -218,7 +218,7 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       aparece en la vista en ≤5 s; ocultar la pestaña detiene el polling y
       mostrarla dispara una consulta inmediata; borrar la lista por otra vía →
       aviso "ya no existe".
-- [ ] T31. `list.js` — desconexión: mantiene visible la última lectura conocida;
+- [x] T31. `list.js` — desconexión: mantiene visible la última lectura conocida;
       las escrituras sin conexión fallan con aviso y NO se encolan; al volver la
       red el polling recupera el estado. (RF-26)
       Hecho cuando: test Playwright (`npx playwright test`) — con red simulada caída, la lista sigue
@@ -250,6 +250,23 @@ clarificación (contador de versión, slug base64url, borrado físico, T0).
       Hecho cuando: test — con lápidas viejas y recientes, el comando borra solo
       las anteriores a `--before` y reporta el número; sin `--before` sale con
       error.
+
+## Navegación y compartir (cambio fase 8)
+
+- [x] T35. Enlace de vuelta al home: `<nav>` "← Mis listas" a `/` en
+      `layout.blade.php`, oculto en el propio home (`@unless(request()->is('/'))`).
+      (RF-33)
+      Hecho cuando: test Pest — `GET /l/{slug}` trae un `<nav>` con `href="/"` y
+      el texto "Mis listas"; `GET /` no trae ese `<nav>`.
+- [x] T36. `list.js` — compartir: acción "Compartir" en la vista de lista que
+      llama `navigator.share({url: window.location.href})`; si no existe, copia
+      con `navigator.clipboard.writeText` y avisa "enlace copiado"; si tampoco,
+      muestra la URL en claro seleccionable; `AbortError` al cancelar se ignora.
+      Botón en `list.blade.php`. (RF-34)
+      Hecho cuando: test Playwright (`npx playwright test`) — con `navigator.share`
+      interceptado, el botón lo invoca con la URL de la lista; sin `share` pero con
+      `clipboard`, copia la URL y muestra el aviso; cancelar (`AbortError`) no
+      muestra aviso de error; funciona con la red simulada caída.
 
 ## Cierre de la feature
 

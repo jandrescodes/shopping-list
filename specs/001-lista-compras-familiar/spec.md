@@ -36,6 +36,8 @@ constitución (el slug es la única llave de acceso).
   página para no comprar de más ni de menos.
 - H5: Como quien usa la app quiero instalarla en la pantalla de inicio del
   celular para abrirla como una app.
+- H6: Como quien tiene el enlace de una lista quiero compartirlo con un toque
+  para que otra persona lo abra sin copiar la URL a mano.
 
 ## Requisitos funcionales (criterios de aceptación en EARS)
 
@@ -71,6 +73,22 @@ constitución (el slug es la única llave de acceso).
   con éxito (RF-7); retira la entrada si al abrirla el servidor responde "no
   encontrado" (404); y conserva como máximo las 20 listas abiertas más
   recientes, descartando la más antigua al superar ese número.
+
+### Navegación y compartir
+
+- RF-33: MIENTRAS un usuario tiene una lista abierta, EL SISTEMA (cliente) ofrece
+  en esa vista un enlace de navegación de vuelta al home, donde vive el acceso
+  directo "Mis listas" (RF-6). El home no muestra ese enlace hacia sí mismo. Es
+  la única navegación interna: al servidor solo se llega a una lista por su slug
+  (RF-5).
+- RF-34: CUANDO un usuario usa la acción "Compartir" de una lista abierta, EL
+  SISTEMA (cliente) invoca la hoja de compartir nativa del dispositivo
+  (`navigator.share`) con la URL pública de la lista (`/l/{slug}`, nunca el `id`).
+  SI el navegador no soporta esa hoja, EL SISTEMA copia la URL al portapapeles e
+  informa de que se copió; SI tampoco puede copiar, muestra la URL en claro para
+  copiarla a mano. La acción no consulta al servidor y funciona sin conexión
+  (RF-26). SI el usuario cancela la hoja de compartir, no se trata como error ni
+  se muestra aviso.
 
 ### Listas: renombrar y eliminar
 
@@ -269,6 +287,11 @@ constitución (el slug es la única llave de acceso).
 - **Cantidad o "quién agregó" vacíos**: el ítem se muestra sin esos datos y sin
   placeholder.
 - **Lista eliminada mientras otro dispositivo la tiene abierta**: RF-27.
+- **Navegador sin `navigator.share` ni Clipboard API** (contexto no seguro o
+  navegador viejo): la acción "Compartir" muestra la URL en claro seleccionable;
+  no falla en silencio (RF-34).
+- **Hoja de compartir cancelada por el usuario** (`AbortError`): no es un error;
+  la vista no cambia ni muestra aviso (RF-34).
 - **Ítems comprados**: se mantienen en la lista, ordenados al final y tachados
   (RF-18); solo desaparecen con "limpiar comprados" (RF-19).
 - **Lista llena (200 ítems activos)**: agregar falla con aviso; marcar, editar y
@@ -297,7 +320,9 @@ constitución (el slug es la única llave de acceso).
 - Todos los RF con test automatizado en verde: Pest 3.8 (sobre PHPUnit) para la
   API y la persistencia, bajo `php artisan test`; tests de navegador con
   Playwright (CLI o MCP, `npx playwright test`) para el comportamiento de cliente
-  (RF-6, RF-21, RF-22, RF-23, RF-26, RF-27). RF-28 y RF-29 se cubren con tests
+  (RF-6, RF-21, RF-22, RF-23, RF-26, RF-27, RF-34). RF-33 se cubre con test de
+  contenido (enlace al home presente en la vista de lista y ausente en el home).
+  RF-28 y RF-29 se cubren con tests
   de contenido (manifest servido y válido con `name`, `icons` 192 y 512,
   `theme_color`, `display`; los ficheros de icono referenciados existen y se
   sirven con `Content-Type: image/png`; `sw.js` servido con MIME de JS) más la
@@ -464,3 +489,19 @@ Ninguna.
   del ítem vigente, no un log por cambio; las lápidas solo se exponen como `id`
   en `deleted_ids`, nunca con `name`, `added_by` ni marcas de tiempo, y no hay
   endpoint ni UI que las liste. No hay conflicto.
+
+### Fase 8 — cambio: navegación y compartir
+
+- **Vuelta al home** (RF-33, nuevo): la vista de lista no tenía navegación
+  interna; el usuario solo podía volver con el botón "atrás" del navegador o
+  editando la URL. Se añade un enlace "Mis listas" hacia el home (donde vive
+  RF-6), como `<nav>` condicional en el layout compartido, oculto en el propio
+  home. No abre ninguna puerta nueva en el servidor (RF-5 intacto): el home ya
+  era accesible en `/`.
+- **Compartir el enlace** (RF-34, nuevo): copiar la URL a mano en el celular es
+  incómodo. Se añade una acción "Compartir" en la vista de lista que usa
+  `navigator.share` (hoja nativa) y cae en `navigator.clipboard` + aviso, y en
+  mostrar la URL en claro como último recurso. Es 100 % cliente: comparte la URL
+  con `slug` (RF-5/constitución 4/6), no consulta al servidor, funciona sin
+  conexión (RF-26) y no añade dependencias (constitución 1). Cancelar la hoja
+  (`AbortError`) no es error. Encaja con mobile-first (constitución 10).

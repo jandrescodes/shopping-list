@@ -15,7 +15,21 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   no SQLite: copiar `.env.testing.example` a `.env.testing` y crear la BD
   `shopping_list_testing` una vez. Se usa MySQL para ejercitar los row locks
   de `App\Support\ListVersion` y los tipos/largos de columna reales.
-- Tests de navegador (capa de cliente): `npx playwright test` (Playwright CLI/MCP)
+- Tests de navegador (capa de cliente): `npx playwright test`. `playwright.config.js`
+  levanta su propio server (`npm run build` + `migrate:fresh` + `serve` con
+  `APP_ENV=testing`, puerto 8199). Requisito: `.env.testing` debe fijar
+  `SESSION_DRIVER=cookie` — el saneamiento de T0 borró la tabla `sessions`, así
+  que con el driver `database` por defecto el server HTTP responde 500 y el
+  `webServer` de Playwright hace timeout (Pest no lo detecta: no toca sesión).
+  El `webServer` arranca con `E2E_RELAXED_LIMITS=1`: el `php artisan serve` es
+  un proceso largo cuyo estado de rate limiting se acumula durante toda la
+  corrida, así que ese flag sube los topes de `bootstrap/app.php`. Pest no lo
+  fija y ejercita los límites reales (`RateLimitingTest`).
+  Locators Playwright: no selecciones por rol ARIA ancho (`p[role="status"]`,
+  `[role="alert"]`) — la vista de lista tiene varios avisos que comparten rol
+  (error, offline, "enlace copiado"). Scopea por la clase de fondo del aviso
+  concreto (`.bg-amber-50`, `.bg-green-50`, …) o `hasText`.
+  Primera vez: `npx playwright install chromium`.
 - Lint/formato: `php artisan pint`
 - Assets: `npm run build`
 
