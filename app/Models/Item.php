@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,15 @@ class Item extends Model
     public function shoppingList(): BelongsTo
     {
         return $this->belongsTo(ShoppingList::class);
+    }
+
+    /**
+     * Server-fixed order: not purchased first, then purchased; each group by
+     * creation date ascending.
+     */
+    public function scopeOrderedActive(Builder $query): void
+    {
+        $query->orderBy('is_purchased')->orderBy('created_at')->orderBy('id');
     }
 
     public function setQuantityAttribute(?string $value): void

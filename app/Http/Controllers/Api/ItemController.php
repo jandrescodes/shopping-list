@@ -12,7 +12,6 @@ use App\Support\ListVersion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 
 class ItemController extends Controller
 {
@@ -20,12 +19,12 @@ class ItemController extends Controller
      * Add an item to a list in the "not purchased" state, through the locked
      * versioned-write helper: the list row is locked, the 200 active-item cap
      * is checked under that lock, and the new item is stamped with the bumped
-     * version (RF-10, RF-11, RF-12, RF-13, RF-17, RF-20, RF-32).
+     * version.
      */
     public function store(StoreItemRequest $request, ShoppingList $list): JsonResponse
     {
         $item = ListVersion::write($list, function (ShoppingList $locked) use ($request) {
-            if ($locked->items()->count() >= 200) {
+            if ($locked->hasReachedActiveItemLimit()) {
                 abort(422, 'La lista alcanzó el límite de 200 ítems.');
             }
 
@@ -39,7 +38,7 @@ class ItemController extends Controller
      * Edit an item field by field: only the fields present in the request are
      * written, so concurrent edits to different fields both survive. Marking an
      * item purchased/not purchased needs no confirmation step. The write goes
-     * through the locked versioned-write helper (RF-14, RF-15, RF-25).
+     * through the locked versioned-write helper.
      */
     public function update(UpdateItemRequest $request, ShoppingList $list, Item $item): JsonResponse
     {
@@ -55,7 +54,7 @@ class ItemController extends Controller
     /**
      * Soft delete an item: the row is kept as a tombstone for sync, stamped
      * with the bumped version through the locked versioned-write helper. It
-     * stops showing in the list right away (RF-16).
+     * stops showing in the list right away.
      */
     public function destroy(ShoppingList $list, Item $item): Response
     {
@@ -72,20 +71,15 @@ class ItemController extends Controller
      * Soft delete every item that is purchased in the database at the moment
      * this runs -- not what the client believed -- in a single pass through the
      * locked versioned-write helper. With nothing purchased it changes nothing
-     * and leaves the list version untouched (RF-19).
+     * and leaves the list version untouched.
      */
     public function purgePurchased(ShoppingList $list): JsonResponse
     {
-        if ($list->items()->where('is_purchased', true)->doesntExist()) {
+        if (! $list->hasPurchasedItems()) {
             return response()->json(['deleted_ids' => []]);
         }
 
-        $purged = ListVersion::write($list, function (ShoppingList $locked) {
-            $purchased = $locked->items()->where('is_purchased', true)->get();
-            $purchased->each->delete();
-
-            return $purchased;
-        });
+        $purged = ListVersion::write($list, fn (ShoppingList $locked) => $locked->purgePurchasedItems());
 
         return response()->json(['deleted_ids' => $purged->pluck('id')->all()]);
     }
@@ -97,49 +91,25 @@ class ItemController extends Controller
      * is a delta: items changed since (version > cursor) plus the ids of items
      * tombstoned in that window. With the cursor missing, non-integer or past
      * the current version, the response is the full active state with an empty
-     * deleted_ids. Either way `cursor` is the list's current version
-     * (RF-18, RF-22, RF-24, RF-27).
+     * deleted_ids. Either way `cursor` is the list's current version.
      */
     public function sync(Request $request, ShoppingList $list): JsonResponse
     {
         $version = $list->version;
-        $raw = $request->query('cursor');
-        $cursor = is_string($raw) && ctype_digit($raw) ? (int) $raw : null;
+        $cursor = $list->resolveSyncCursor($request->query('cursor'));
 
-        if ($cursor === null || $cursor > $version) {
+        if ($cursor === null) {
             return response()->json([
-                'items' => ItemResource::collection($this->orderedActiveItems($list))->resolve(),
+                'items' => ItemResource::collection($list->activeItemsOrdered())->resolve(),
                 'deleted_ids' => [],
                 'cursor' => $version,
             ]);
         }
 
-        $items = $this->orderedActiveItems($list)->where('version', '>', $cursor)->values();
-
-        $deletedIds = $list->items()->onlyTrashed()
-            ->where('version', '>', $cursor)
-            ->pluck('id')
-            ->all();
-
         return response()->json([
-            'items' => ItemResource::collection($items)->resolve(),
-            'deleted_ids' => $deletedIds,
+            'items' => ItemResource::collection($list->activeItemsChangedSince($cursor))->resolve(),
+            'deleted_ids' => $list->deletedItemIdsSince($cursor),
             'cursor' => $version,
         ]);
-    }
-
-    /**
-     * Active items in the server-fixed order: not purchased first, then
-     * purchased; each group by creation date ascending (RF-18).
-     *
-     * @return Collection<int, Item>
-     */
-    private function orderedActiveItems(ShoppingList $list): Collection
-    {
-        return $list->items()
-            ->orderBy('is_purchased')
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->get();
     }
 }

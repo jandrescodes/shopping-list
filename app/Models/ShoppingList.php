@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class ShoppingList extends Model
 {
     use HasFactory;
+
+    public const MAX_ACTIVE_ITEMS = 200;
 
     protected $fillable = ['name'];
 
@@ -44,6 +47,73 @@ class ShoppingList extends Model
         $this->increment('version');
 
         return $this->version;
+    }
+
+    /**
+     * @return Collection<int, Item>
+     */
+    public function activeItemsOrdered(): Collection
+    {
+        return $this->items()->orderedActive()->get();
+    }
+
+    /**
+     * @return Collection<int, Item>
+     */
+    public function activeItemsChangedSince(int $cursor): Collection
+    {
+        return $this->items()->orderedActive()->where('version', '>', $cursor)->get();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function deletedItemIdsSince(int $cursor): array
+    {
+        return $this->items()->onlyTrashed()->where('version', '>', $cursor)->pluck('id')->all();
+    }
+
+    /**
+     * Resolves a raw sync cursor query param into a usable version bound, or
+     * null when it's missing, malformed, or past the list's current version —
+     * any of which means the client needs a full sync.
+     */
+    public function resolveSyncCursor(mixed $raw): ?int
+    {
+        $cursor = is_string($raw) && ctype_digit($raw) ? (int) $raw : null;
+
+        return $cursor !== null && $cursor <= $this->version ? $cursor : null;
+    }
+
+    public function hasReachedActiveItemLimit(): bool
+    {
+        return $this->items()->count() >= self::MAX_ACTIVE_ITEMS;
+    }
+
+    public function hasPurchasedItems(): bool
+    {
+        return $this->items()->where('is_purchased', true)->exists();
+    }
+
+    /**
+     * @return Collection<int, Item>
+     */
+    public function purgePurchasedItems(): Collection
+    {
+        $purchased = $this->items()->where('is_purchased', true)->get();
+        $purchased->each->delete();
+
+        return $purchased;
+    }
+
+    /**
+     * Physically deletes the list and every one of its items, active rows and
+     * tombstones alike.
+     */
+    public function deleteWithItems(): void
+    {
+        $this->items()->withTrashed()->forceDelete();
+        $this->forceDelete();
     }
 
     private static function generateUniqueSlug(): string

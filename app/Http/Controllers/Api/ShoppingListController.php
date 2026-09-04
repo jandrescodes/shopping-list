@@ -14,7 +14,7 @@ use Illuminate\Http\Response;
 class ShoppingListController extends Controller
 {
     /**
-     * Create a list and return its public absolute link (RF-1, RF-2).
+     * Create a list and return its public absolute link.
      */
     public function store(StoreListRequest $request): JsonResponse
     {
@@ -29,27 +29,21 @@ class ShoppingListController extends Controller
 
     /**
      * Show a list with its items, server-ordered: not purchased first, then
-     * purchased; each group by creation date ascending (RF-3, RF-4, RF-18).
+     * purchased; each group by creation date ascending.
      */
     public function show(ShoppingList $list): JsonResponse
     {
-        $items = $list->items()
-            ->orderBy('is_purchased')
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->get();
-
         return response()->json([
             'slug' => $list->slug,
             'name' => $list->name,
             'version' => $list->version,
-            'items' => ItemResource::collection($items)->resolve(),
+            'items' => ItemResource::collection($list->activeItemsOrdered())->resolve(),
         ]);
     }
 
     /**
      * Rename a list, keeping its slug and bumping the version counter through
-     * the locked versioned-write helper (RF-7, RF-25).
+     * the locked versioned-write helper.
      */
     public function update(UpdateListRequest $request, ShoppingList $list): JsonResponse
     {
@@ -67,12 +61,11 @@ class ShoppingListController extends Controller
     /**
      * Physically delete a list and every one of its items, active rows and
      * tombstones alike. Any later access to the slug is a plain 404, byte for
-     * byte identical to a slug that never existed (RF-4, RF-8, RF-9).
+     * byte identical to a slug that never existed.
      */
     public function destroy(ShoppingList $list): Response
     {
-        $list->items()->withTrashed()->forceDelete();
-        $list->forceDelete();
+        $list->deleteWithItems();
 
         return response()->noContent();
     }
