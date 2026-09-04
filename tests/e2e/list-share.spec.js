@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-// T36 -- list.js share action (RF-34): native share sheet, else copy to the
-// clipboard with a notice, else show the URL in clear. All client-side, works
-// offline, and a cancelled sheet is not an error.
+// list.js share action: native share sheet, else copy to the clipboard with a
+// notice, else show the URL in clear. All client-side, works offline, and a
+// cancelled sheet is not an error.
 
 async function createList(request, name = 'Feria del sábado') {
     const res = await request.post('/api/lists', { data: { name } });

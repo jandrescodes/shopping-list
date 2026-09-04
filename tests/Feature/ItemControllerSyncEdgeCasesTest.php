@@ -4,7 +4,7 @@ use App\Models\Item;
 use App\Models\ShoppingList;
 
 /**
- * T20 — the five sync edge cases (RF-24). The cursor is the list version
+ * The five sync edge cases for the cursor. The cursor is the list version
  * counter and nothing else: no clock, client or database, takes part.
  */
 it('falls back to the full active state for a missing, non-integer or too-large cursor', function (?string $cursor) {

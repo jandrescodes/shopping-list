@@ -8,17 +8,16 @@ use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Command;
 
 /**
- * Purga manual de lápidas de sincronización (RF-16). Los ítems con borrado
- * lógico se conservan como tombstone para que `sync` los propague en el delta;
- * no se purgan de forma automática (constitución 5: sin scheduler/cron). Este
- * comando se corre a mano en mantenimiento cuando ya ningún cliente necesita
- * ese delta.
+ * Soft-deleted items are kept as tombstones so `sync` can propagate them in
+ * the delta; they are never purged automatically (constitution 5: no
+ * scheduler/cron). This command is run by hand during maintenance once no
+ * client still needs that delta.
  */
 class PurgeTombstones extends Command
 {
     protected $signature = 'items:purge-tombstones {--before= : Fecha límite; se borran las lápidas con deleted_at anterior}';
 
-    protected $description = 'Borra físicamente los ítems con borrado lógico anteriores a una fecha (RF-16)';
+    protected $description = 'Borra físicamente los ítems con borrado lógico anteriores a una fecha';
 
     public function handle(): int
     {

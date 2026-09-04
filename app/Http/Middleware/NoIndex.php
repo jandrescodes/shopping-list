@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Marks list pages as non-indexable (RNF). The unguessable slug is the only
- * access key (constitution 4), so it must never end up in a search index.
+ * Marks list pages as non-indexable. The unguessable slug is the only access
+ * key (constitution 4), so it must never end up in a search index.
  */
 class NoIndex
 {

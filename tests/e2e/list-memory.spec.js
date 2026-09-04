@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-// T29 -- list.js local memory (RF-6, RF-21): remembers the opened list and the
-// "who is adding" name in localStorage, offers "quitar de mis listas", prunes
-// on a 404 from the authoritative load, refreshes the stored name after a
-// rename, and keeps at most 20 lists.
+// list.js local memory: remembers the opened list and the "who is adding"
+// name in localStorage, offers "quitar de mis listas", prunes on a 404 from
+// the authoritative load, refreshes the stored name after a rename, and
+// keeps at most 20 lists.
 
 async function createList(request, name = 'Feria del sábado') {
     const res = await request.post('/api/lists', { data: { name } });

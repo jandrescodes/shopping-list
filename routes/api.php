@@ -7,8 +7,8 @@
 |
 | REST endpoints for shopping lists and items. No authentication: the
 | unguessable list slug is the only access key (constitution 4). There is
-| deliberately no route that enumerates lists (RF-5). Nested item routes use
-| scoped bindings so an item is always resolved within its list's scope.
+| deliberately no route that enumerates lists. Nested item routes use scoped
+| bindings so an item is always resolved within its list's scope.
 |
 | Per-IP throttles (defined in bootstrap/app.php): `lists-create` on list
 | creation, `writes` on every mutation, `sync` on the polling GET. Reads of a

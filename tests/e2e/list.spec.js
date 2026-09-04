@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-// T28 -- list.js core: initial load via `show`, reactive rendering with x-text,
-// add / mark / delete that wait for the API before touching the view, and each
-// edit sending only the changed fields (RF-3, RF-15, RF-18, RF-25, RF-32).
+// list.js core: initial load via `show`, reactive rendering with x-text,
+// add / mark / delete that wait for the API before touching the view, and
+// each edit sending only the changed fields.
 
 async function createList(request, name = 'Feria del sábado') {
     const res = await request.post('/api/lists', { data: { name } });

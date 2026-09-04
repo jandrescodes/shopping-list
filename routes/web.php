@@ -4,14 +4,14 @@ use App\Models\ShoppingList;
 use Illuminate\Support\Facades\Route;
 
 // Home page: create-list form plus the "my lists" section, populated client-side
-// from localStorage (RF-6). The server never enumerates lists (RF-5).
+// from localStorage. The server never enumerates lists.
 Route::get('/', function () {
     return view('home');
 });
 
 // PWA manifest and icons. On shared hosting Apache serves these files from
 // public/ directly; these routes are the fallback that also lets the test suite
-// and `artisan serve` reach them (RF-28).
+// and `artisan serve` reach them.
 Route::get('/manifest.json', fn () => response()->file(public_path('manifest.json'), [
     'Content-Type' => 'application/manifest+json',
 ]));
@@ -22,22 +22,23 @@ Route::get('/icons/{icon}', function (string $icon) {
     return response()->file(public_path("icons/{$icon}"), ['Content-Type' => 'image/png']);
 });
 
-// Service worker (app shell / offline, RF-26 y RF-29). Igual que el manifest:
-// en producción lo sirve Apache; la ruta es el fallback para tests y
-// `artisan serve`. Se sirve desde la raíz para que el scope cubra toda la app.
+// Service worker (app shell / offline). Same as the manifest: in production
+// Apache serves it directly; this route is the fallback for tests and
+// `artisan serve`. Served from the root so its scope covers the app.
 Route::get('/sw.js', fn () => response()->file(public_path('sw.js'), [
     'Content-Type' => 'text/javascript',
     'Service-Worker-Allowed' => '/',
 ]));
 
 // Minimal static offline fallback served from the service worker cache when the
-// app is opened with no network and was never cached before (RF-29).
+// app is opened with no network and was never cached before.
 Route::get('/offline', fn () => view('offline'));
 
-// List page. Exact slug match; direct 404 if it does not exist (plan). Items are
-// rendered server-side in the RF-18 order (not purchased first, then purchased;
-// each group by creation ascending); resources/js/list.js takes over from there.
-// The `noindex` middleware keeps the unguessable slug out of search indexes (RNF).
+// List page. Exact slug match; direct 404 if it does not exist. Items are
+// rendered server-side in the same order the client uses (not purchased first,
+// then purchased; each group by creation ascending); resources/js/list.js
+// takes over from there. The `noindex` middleware keeps the unguessable slug
+// out of search indexes.
 Route::get('/l/{list}', function (ShoppingList $list) {
     $items = $list->items()
         ->orderBy('is_purchased')

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-// T30 -- list.js polling (RF-18, RF-22, RF-23, RF-27): every 3-4 s the client
-// asks `sync` for changes since the last cursor, merges items by id, drops the
-// tombstoned ones, re-sorts by the RF-18 rule, pauses while the tab is hidden
-// and catches up immediately on return, and shows a notice when `sync` 404s.
+// list.js polling: every 3-4 s the client asks `sync` for changes since the
+// last cursor, merges items by id, drops the tombstoned ones, re-sorts by the
+// server order, pauses while the tab is hidden and catches up immediately on
+// return, and shows a notice when `sync` 404s.
 
 async function createList(request, name = 'Feria del sábado') {
     const res = await request.post('/api/lists', { data: { name } });

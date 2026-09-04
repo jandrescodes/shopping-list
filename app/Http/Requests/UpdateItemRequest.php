@@ -12,7 +12,7 @@ class UpdateItemRequest extends FormRequest
     }
 
     /**
-     * Editing an item is field-by-field (RF-25): only the fields present in the
+     * Editing an item is field-by-field: only the fields present in the
      * request are validated and, later, persisted.
      *
      * @return array<string, mixed>

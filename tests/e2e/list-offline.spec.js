@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-// T31 -- list.js offline behaviour (RF-26): the last known list stays visible
-// with no network, writes fail with a notice and are NOT queued, and the poll
+// list.js offline behaviour: the last known list stays visible with no
+// network, writes fail with a notice and are NOT queued, and the poll
 // recovers the real state once the connection is back.
 
 async function createList(request, name = 'Feria del sábado') {

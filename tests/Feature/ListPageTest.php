@@ -16,7 +16,7 @@ it('renders the list page with its header, add input and list-level actions', fu
     $response->assertSee('Renombrar');
     $response->assertSee('Eliminar');
     $response->assertSee('Limpiar comprados');
-    // Delete + purge go through an explicit confirmation panel (RF-9, RF-19).
+    // Delete + purge go through an explicit confirmation panel.
     $response->assertSee('Sí, eliminar');
     $response->assertSee('Sí, limpiar');
 });
