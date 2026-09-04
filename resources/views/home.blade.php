@@ -4,7 +4,7 @@
 
 @section('content')
     <header class="mb-6">
-        <h1 class="text-2xl font-bold">Listas de compras</h1>
+        <h1 class="text-2xl font-bold tracking-tight md:text-3xl">Listas de compras</h1>
         <p class="mt-1 text-sm text-gray-600">
             Crea una lista y comparte su enlace con tu familia. Sin cuentas ni contraseñas.
         </p>
@@ -18,7 +18,7 @@
             <label for="list-name" class="sr-only">Nombre de la lista</label>
             <input id="list-name" name="name" type="text" x-model="name" maxlength="60" required autocomplete="off"
                 placeholder="Feria del sábado"
-                class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none">
+                class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-2 focus:outline-blue-500">
             <button type="submit" x-bind:disabled="busy"
                 class="shrink-0 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50">
                 Crear
@@ -43,74 +43,16 @@
                     <a x-bind:href="'/l/' + entry.slug" class="min-w-0 flex-1 truncate font-medium text-blue-700"
                         x-text="entry.name"></a>
                     <button type="button" x-on:click="remove(entry.slug)"
-                        class="shrink-0 text-sm text-gray-400 hover:text-red-600" aria-label="Quitar de mis listas">
+                        class="relative shrink-0 text-sm text-gray-500 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] hover:text-red-600 focus-visible:outline-2 focus-visible:outline-blue-500"
+                        aria-label="Quitar de mis listas">
                         Quitar
                     </button>
                 </li>
             </template>
         </ul>
     </section>
+@endsection
 
-    <script>
-        // Home-page glue. The list-page memory (writing entries, name refresh,
-        // 404 pruning, 20-entry cap) lives in resources/js/list.js (T29); both
-        // sides share the `myShoppingLists` localStorage key.
-        const MY_LISTS_KEY = 'myShoppingLists';
-
-        function readMyLists() {
-            try {
-                return JSON.parse(localStorage.getItem(MY_LISTS_KEY)) || [];
-            } catch (e) {
-                return [];
-            }
-        }
-
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('homeCreate', () => ({
-                name: '',
-                busy: false,
-                error: '',
-                async create() {
-                    this.busy = true;
-                    this.error = '';
-                    try {
-                        const res = await fetch('/api/lists', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                name: this.name
-                            }),
-                        });
-                        if (!res.ok) {
-                            this.error =
-                                'No se pudo crear la lista. Revisa el nombre e inténtalo de nuevo.';
-                            return;
-                        }
-                        const data = await res.json();
-                        window.location.href = '/l/' + data.slug;
-                    } catch (e) {
-                        this.error = 'Sin conexión. Inténtalo cuando vuelvas a tener red.';
-                    } finally {
-                        this.busy = false;
-                    }
-                },
-            }));
-
-            Alpine.data('myLists', () => ({
-                entries: [],
-                load() {
-                    this.entries = readMyLists();
-                },
-                remove(slug) {
-                    this.entries = this.entries.filter((e) => e.slug !== slug);
-                    try {
-                        localStorage.setItem(MY_LISTS_KEY, JSON.stringify(this.entries));
-                    } catch (e) {}
-                },
-            }));
-        });
-    </script>
+@section('scripts')
+    @vite(['resources/js/home.js'])
 @endsection
