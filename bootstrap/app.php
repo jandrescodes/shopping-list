@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\Hsts;
 use App\Http\Middleware\NoIndex;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
@@ -20,9 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'noindex' => NoIndex::class,
         ]);
+
+        $middleware->append(Hsts::class);
     })
     ->booted(function (): void {
-        // Per-IP request limits (constitution 5, RNF). Generous ceilings for
+        // Per-IP request limits (constitution 5). Generous ceilings for
         // real family use; only a defensive cap against abuse. The browser
         // suite drives a long-lived `php artisan serve` whose limiter state
         // accumulates across the whole run, so it opts out with E2E_RELAXED_LIMITS
@@ -34,7 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         RateLimiter::for('sync', fn (Request $request) => Limit::perMinute($relaxed ? 100000 : 60)->by($request->ip()));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // RF-4: a missing list — deleted or never created — and any unknown API
+        // A missing list — deleted or never created — and any unknown API
         // route answer with one identical generic 404, leaking no detail about
         // whether the list ever existed.
         $exceptions->render(function (NotFoundHttpException $e, $request) {
