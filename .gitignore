@@ -30,3 +30,4 @@ Thumbs.db
 /playwright/.cache
 .claude/
 .mcp.json
+.impeccable/
