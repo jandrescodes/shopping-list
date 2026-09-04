@@ -55,7 +55,10 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - `app/Models/ShoppingList.php`, `app/Models/Item.php`
 - `app/Http/Controllers/Api/ShoppingListController.php`, `.../ItemController.php`
 - `routes/api.php`
-- `resources/js/list.js` (Alpine, versión pineada), `vite.config.js` (`input`)
+- `resources/js/app.js` (bootstrap + registro del service worker, global),
+  `resources/js/home.js` (glue de la home, `@vite` solo ahí),
+  `resources/js/list.js` (Alpine, versión pineada, global), `vite.config.js`
+  (`input`)
 - `public/manifest.json`, `public/sw.js`
 - `.github/workflows/ci.yml` (tests + Pint en push/PR a `main`),
   `.github/workflows/deploy.yml` (deploy a Hostinger por `rsync` sobre SSH;
@@ -63,6 +66,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - `bootstrap/app.php`: render de excepciones. Todo `NotFoundHttpException` en
   `api/*` (o que espera JSON) responde `404 {"message":"Not Found"}` uniforme —
   lista borrada, slug inexistente o ruta desconocida son indistinguibles (RF-4).
+  También registra `App\Http\Middleware\Hsts` de forma global (`Strict-
+  Transport-Security`, todas las respuestas), aparte del alias `noindex` que
+  solo aplica a `/l/{slug}`.
 
 ## Reglas
 
@@ -87,6 +93,23 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   mismo commit.
 - No subas `.env`. No asumas colas ni schedulers sin verificar el plan de hosting.
 - No añadas WebSockets/Reverb ni autenticación sin cambiar antes la constitución.
+- **Vistas Blade sin `<script>`/`<style>` inline** (salvo `offline.blade.php`,
+  ver su propio comentario: fallback cacheado por el SW que debe renderizar
+  sin build ni red). JS de página va a su propio módulo en `resources/js/` y
+  se registra como entrada en `vite.config.js`; si es solo para una vista, se
+  incluye con `@vite([...])` dentro de `@section('scripts')` en esa vista, y
+  `layout.blade.php` lo imprime con `@yield('scripts')` al final de `<body>`.
+  **Gotcha de orden**: `list.js` es la entrada global que llama
+  `Alpine.start()`; si se añade una entrada de página (como `home.js`) que
+  registra sus propios `Alpine.data()` en `alpine:init`, esa entrada se
+  imprime *después* de `list.js` en el HTML (va en `@yield('scripts')`, al
+  final de `<body>`), así que si `Alpine.start()` corriera de forma síncrona
+  al final de `list.js` dispararía `alpine:init` antes de que el módulo de
+  la página hubiera corrido, dejando sus componentes sin definir
+  (`ReferenceError` en consola). Por eso `Alpine.start()` va envuelto en un
+  listener de `DOMContentLoaded` (dispara después de que todos los `<script
+  type="module">` — deferred por naturaleza — ya corrieron y registraron sus
+  componentes).
 
 ## Al terminar cualquier tarea
 

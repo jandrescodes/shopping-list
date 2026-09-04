@@ -93,7 +93,9 @@ ejecuta `npx playwright install chromium` la primera vez.
 app/Http/Controllers/Api/   Controladores REST (listas, ítems)
 app/Models/                  ShoppingList, Item
 routes/api.php               Endpoints de la API
-resources/js/list.js         Cliente Alpine (edición + polling)
+resources/js/app.js           Bootstrap global + registro del service worker
+resources/js/home.js          Glue de la home (crear lista, "mis listas")
+resources/js/list.js          Cliente Alpine (edición + polling)
 resources/views/             Vistas Blade
 public/manifest.json         Manifest PWA
 public/sw.js                 Service worker

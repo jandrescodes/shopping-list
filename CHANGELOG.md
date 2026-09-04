@@ -9,6 +9,42 @@ y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 _Nada por ahora._
 
+## [1.1.0] - 2026-09-04
+
+### Añadido
+
+- **HSTS.** Middleware `App\Http\Middleware\Hsts` (`Strict-Transport-Security`)
+  registrado de forma global en `bootstrap/app.php`, aparte del alias `noindex`.
+- Cache de `vendor/` (Composer) en el job `deploy` de
+  `.github/workflows/deploy.yml`, con key propia separada del job `test`
+  (`--no-dev` da un árbol de dependencias distinto).
+- **Deshacer borrado de ítem.** Ventana de gracia de 5 s tras eliminar un
+  ítem: "deshacer" lo recrea con el mismo nombre/cantidad/"quién agrega"/
+  estado de comprado (nuevo `id`, no revierte el `DELETE`).
+
+### Cambiado
+
+- **Vistas Blade sin `<script>`/`<style>` inline** (salvo `offline.blade.php`).
+  El JS de `home.blade.php` y el registro del service worker de
+  `layout.blade.php` se movieron a `resources/js/home.js` y
+  `resources/js/app.js` respectivamente, cada uno como entrada de Vite.
+  `layout.blade.php` ahora imprime `@yield('scripts')` al final de `<body>`.
+- **Fat model / thin controller.** La lógica de ordenamiento, sincronización
+  por cursor, límite de 200 ítems, purga de comprados y borrado en cascada se
+  movió de `ItemController`/`ShoppingListController` a métodos en
+  `App\Models\ShoppingList` y un scope en `App\Models\Item`.
+- **Ajustes visuales y de accesibilidad** (hallazgos de `/impeccable`): tarjeta
+  propia para `<main>` en pantallas md+, contraste y anillo de foco en
+  inputs/botones, áreas táctiles ampliadas vía pseudo-elemento `::before`,
+  aviso de "enlace copiado" con auto-dismiss a los 5 s.
+- Comentarios de código: se quitaron las referencias a `RF-##`/`RNF`/`T##`
+  (rotan con la spec; el contrato vive en `specs/`, no en comentarios).
+
+### Eliminado
+
+- Referencias a requisitos (`RF-4`, `RF-18`, etc.) en comentarios de
+  `bootstrap/app.php` y `routes/web.php`.
+
 ## [1.0.0] - 2026-09-03
 
 Primera versión funcional. Implementa completa la feature 001 "Lista de compras
@@ -82,5 +118,6 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
-[Sin publicar]: https://github.com/jandrescodes/shopping-list/compare/1.0.0...HEAD
+[Sin publicar]: https://github.com/jandrescodes/shopping-list/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/jandrescodes/shopping-list/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/jandrescodes/shopping-list/releases/tag/1.0.0
