@@ -45,8 +45,15 @@ servidor (paso 4). No se versiona ni se guarda como secreto de GitHub.
 1. `test` — Pest contra MySQL 8.0 (misma base que CI). Si falla, no se despliega.
 2. `deploy` (entorno `production`; primer paso verifica los secretos y aborta
    con un error claro si falta alguno):
-    - `composer install --no-dev --optimize-autoloader` en el runner.
-    - `npm ci && npm run build` en el runner (genera `public/build/`).
+    - `composer install --no-dev --optimize-autoloader` en el runner, con
+      `vendor/` cacheado por `hashFiles('composer.lock')` (key
+      `composer-prod-*`, separada de la del job `test` porque `--no-dev` da un
+      árbol de dependencias distinto).
+    - `npm ci && npm run build` en el runner (genera `public/build/`); el
+      registro de npm queda cacheado vía `cache: npm` de `actions/setup-node`
+      (`npm ci` siempre reinstala `node_modules/` desde cero, así que cachear
+      ese directorio no ahorra nada — lo que evita la descarga de red es la
+      caché del registro).
     - `rsync -az --delete` al `$HOSTINGER_APP_PATH` del servidor, excluyendo
       `.git/`, `.github/`, `docs/`, `specs/`, `tests/`, `node_modules/`, `.env*`,
       `/storage/`, `playwright.config.js`, `phpunit.xml`. **`vendor/` y

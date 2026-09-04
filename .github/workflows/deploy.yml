@@ -96,6 +96,13 @@ jobs:
           extensions: mbstring, pdo_mysql, bcmath, intl
           coverage: none
 
+      - name: Cache Composer packages
+        uses: actions/cache@v6
+        with:
+          path: vendor
+          key: composer-prod-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-prod-
+
       - name: Install PHP dependencies (producción)
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
 
