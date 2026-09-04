@@ -1,22 +1,20 @@
 import Alpine from 'alpinejs';
 
-// Shopping list view logic (Alpine component). T28 covers the core: initial
-// load through `show`, reactive rendering with x-text for every piece of user
-// content (never x-html, RF-32), and add / edit / mark / delete that wait for
-// the API response before touching the view (no optimistic UI). Each edit sends
-// only the fields that change (RF-25). Local memory (T29), polling (T30) and
-// the offline behaviour (T31) build on top of this component.
+// Shopping list view logic (Alpine component). Reactive rendering uses x-text
+// for every piece of user content (never x-html), and add / edit / mark /
+// delete wait for the API response before touching the view (no optimistic
+// UI). Each edit sends only the fields that change.
 
 const JSON_HEADERS = { 'Content-Type': 'application/json', Accept: 'application/json' };
 
-// Shown when a write fails with no network (RF-26). Writes need a connection and
-// are never queued for later, so the wording must not promise a retry.
+// Shown when a write fails with no network. Writes need a connection and are
+// never queued for later, so the wording must not promise a retry.
 const OFFLINE_MESSAGE = 'Sin conexión. La acción no se guardó; inténtalo otra vez cuando vuelvas a tener red.';
 
-// Client-side memory (T29, RF-6 / RF-21). `myShoppingLists` is shared with the
-// home page: an array of { slug, name }, most-recently-opened first, capped at
-// MAX_LISTS. `myShoppingListAuthor` is the "who is adding" name proposed when
-// creating items. Every access is wrapped: storage can be disabled or full.
+// Client-side memory. `myShoppingLists` is shared with the home page: an
+// array of { slug, name }, most-recently-opened first, capped at MAX_LISTS.
+// `myShoppingListAuthor` is the "who is adding" name proposed when creating
+// items. Every access is wrapped: storage can be disabled or full.
 const MY_LISTS_KEY = 'myShoppingLists';
 const AUTHOR_KEY = 'myShoppingListAuthor';
 const MAX_LISTS = 20;
@@ -53,9 +51,9 @@ function writeAuthor(name) {
     }
 }
 
-// RF-18 order: not purchased first, then purchased; within each group by
-// creation order. ItemResource carries no timestamp, but ids are handed out
-// monotonically, so ascending id matches ascending creation.
+// Not purchased first, then purchased; within each group by creation order.
+// ItemResource carries no timestamp, but ids are handed out monotonically,
+// so ascending id matches ascending creation.
 function orderItems(items) {
     return [...items].sort((a, b) => {
         if (a.is_purchased !== b.is_purchased) {
@@ -88,6 +86,9 @@ document.addEventListener('alpine:init', () => {
         pollTimer: null,
         pollStopped: false,
         offline: false,
+        pendingUndo: null,
+        undoTimer: null,
+        shareNoticeTimer: null,
 
         init() {
             this.slug = this.$el.dataset.slug;
@@ -100,8 +101,8 @@ document.addEventListener('alpine:init', () => {
             this.load();
         },
 
-        // Back online (RF-26): the last known list stayed on screen; pull the
-        // real state right away instead of waiting for the next poll tick.
+        // Back online: the last known list stayed on screen; pull the real
+        // state right away instead of waiting for the next poll tick.
         goOnline() {
             this.offline = false;
 
@@ -117,13 +118,13 @@ document.addEventListener('alpine:init', () => {
 
         // Message for a failed write: keep the server's own error, but name a
         // dropped connection for what it is (a fetch network failure has no
-        // .status). Writes are never queued (RF-26).
+        // .status). Writes are never queued.
         writeError(e, fallback) {
             return e && e.status ? fallback : OFFLINE_MESSAGE;
         },
 
-        // Record this list in the local directory (RF-6), newest first, name
-        // kept in sync with whatever the server last returned, capped at 20.
+        // Record this list in the local directory, newest first, name kept
+        // in sync with whatever the server last returned, capped at 20.
         rememberList() {
             const entries = readMyLists().filter((entry) => entry.slug !== this.slug);
             entries.unshift({ slug: this.slug, name: this.listName });
@@ -140,11 +141,12 @@ document.addEventListener('alpine:init', () => {
             writeAuthor(this.author.trim());
         },
 
-        // Share the list's own URL (RF-34). Native share sheet on mobile; on a
-        // browser without it, copy to the clipboard; with neither, show the URL
-        // to copy by hand. All client-side — no API call, works offline.
+        // Native share sheet on mobile; on a browser without it, copy to the
+        // clipboard; with neither, show the URL to copy by hand. All
+        // client-side — no API call, works offline.
         async shareList() {
             const url = window.location.href;
+            clearTimeout(this.shareNoticeTimer);
             this.shareNotice = '';
             this.shareUrl = '';
 
@@ -153,7 +155,7 @@ document.addEventListener('alpine:init', () => {
                     await navigator.share({ title: this.listName, url });
                 } catch (e) {
                     // cancelled sheet (AbortError) or a share that fell through:
-                    // nothing useful to tell the user (RF-34)
+                    // nothing useful to tell the user
                 }
 
                 return;
@@ -162,12 +164,15 @@ document.addEventListener('alpine:init', () => {
             try {
                 await navigator.clipboard.writeText(url);
                 this.shareNotice = 'Enlace copiado. Pégalo donde quieras compartirlo.';
+                // Auto-dismiss: an unclosed "copied" confirmation would otherwise sit on
+                // screen through later, unrelated actions and push the list down.
+                this.shareNoticeTimer = setTimeout(() => { this.shareNotice = ''; }, 5000);
             } catch (e) {
                 this.shareUrl = url; // last resort: let them select and copy it
             }
         },
 
-        // --- Cross-device sync by polling (T30, RF-22, RF-23, RF-27) ---
+        // --- Cross-device sync by polling ---
 
         startPolling() {
             this.pollStopped = false;
@@ -188,7 +193,7 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            // 3-4 s cadence (RF-22); the jitter spreads out several open tabs.
+            // 3-4 s cadence; the jitter spreads out several open tabs.
             this.pollTimer = setTimeout(() => this.poll(), 3000 + Math.random() * 1000);
         },
 
@@ -196,7 +201,7 @@ document.addEventListener('alpine:init', () => {
             clearTimeout(this.pollTimer);
             this.pollTimer = null;
 
-            // Hidden: stop. Visible again: sync right away, then resume (RF-22).
+            // Hidden: stop. Visible again: sync right away, then resume.
             if (!document.hidden && !this.pollStopped) {
                 this.poll();
             }
@@ -220,14 +225,14 @@ document.addEventListener('alpine:init', () => {
                 data = await this.request(`/api/lists/${this.slug}/items?cursor=${this.version}`);
             } catch (e) {
                 if (e.status === 404) {
-                    // Deleted from another device (RF-27); the server can't tell
-                    // us that directly, the open client infers it.
+                    // Deleted from another device; the server can't tell us
+                    // that directly, the open client infers it.
                     this.stopPolling();
                     this.forgetList();
                     this.error = 'Esta lista ya no existe.';
                 }
 
-                return; // a network blip keeps the last known list visible (RF-26)
+                return; // a network blip keeps the last known list visible
             }
 
             const removed = new Set(data.deleted_ids);
@@ -275,8 +280,8 @@ document.addEventListener('alpine:init', () => {
             return res.status === 204 ? null : res.json();
         },
 
-        // Authoritative initial load (RF-3). The server-rendered list stays
-        // visible until this resolves.
+        // Authoritative initial load. The server-rendered list stays visible
+        // until this resolves.
         async load() {
             try {
                 const data = await this.request(`/api/lists/${this.slug}`);
@@ -285,7 +290,7 @@ document.addEventListener('alpine:init', () => {
                 this.items = orderItems(data.items.map(normalize));
                 this.ready = true;
                 this.error = '';
-                this.rememberList(); // refreshes the stored name too (RF-6)
+                this.rememberList(); // refreshes the stored name too
                 this.startPolling();
             } catch (e) {
                 if (e.status === 404) {
@@ -331,7 +336,7 @@ document.addEventListener('alpine:init', () => {
                 this.error = '';
 
                 if (addedBy) {
-                    writeAuthor(addedBy); // remember "who is adding" (RF-21)
+                    writeAuthor(addedBy); // remember "who is adding"
                 }
             } catch (e) {
                 this.error = e.status === 422
@@ -371,7 +376,7 @@ document.addEventListener('alpine:init', () => {
             }
 
             try {
-                // Only the changed field goes in the payload (RF-25).
+                // Only the changed field goes in the payload.
                 const updated = await this.request(`/api/lists/${this.slug}/items/${item.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ name }),
@@ -388,8 +393,68 @@ document.addEventListener('alpine:init', () => {
                 await this.request(`/api/lists/${this.slug}/items/${item.id}`, { method: 'DELETE' });
                 this.items = this.items.filter((current) => current.id !== item.id);
                 this.error = '';
+                this.offerUndo(item);
             } catch (e) {
                 this.error = this.writeError(e, 'No se pudo eliminar el ítem.');
+            }
+        },
+
+        // Delete is the single riskiest tap in the list (sits next to the checkbox,
+        // the most-repeated gesture) with no way back otherwise. The item
+        // is already gone server-side by the time this runs (no optimistic UI,
+        // no queued writes anywhere else in this app), so "undo" re-creates it
+        // with the same content instead of rolling back the DELETE — a new id,
+        // same name/quantity/added_by/purchased state. 5 s grace window.
+        offerUndo(item) {
+            clearTimeout(this.undoTimer);
+            this.pendingUndo = {
+                name: item.name,
+                quantity: item.quantity,
+                added_by: item.added_by,
+                is_purchased: item.is_purchased,
+            };
+            this.undoTimer = setTimeout(() => { this.pendingUndo = null; }, 5000);
+        },
+
+        async undoRemove() {
+            const snapshot = this.pendingUndo;
+
+            if (!snapshot) {
+                return;
+            }
+
+            clearTimeout(this.undoTimer);
+            this.pendingUndo = null;
+
+            const payload = { name: snapshot.name };
+
+            if (snapshot.quantity) {
+                payload.quantity = snapshot.quantity;
+            }
+
+            if (snapshot.added_by) {
+                payload.added_by = snapshot.added_by;
+            }
+
+            try {
+                const created = await this.request(`/api/lists/${this.slug}/items`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+
+                if (snapshot.is_purchased) {
+                    const updated = await this.request(`/api/lists/${this.slug}/items/${created.id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ is_purchased: true }),
+                    });
+                    this.upsert(updated);
+                } else {
+                    this.upsert(created);
+                }
+
+                this.error = '';
+            } catch (e) {
+                this.error = this.writeError(e, 'No se pudo deshacer la eliminación.');
             }
         },
 
@@ -411,7 +476,7 @@ document.addEventListener('alpine:init', () => {
                 this.version = data.version;
                 this.editingName = false;
                 this.error = '';
-                this.rememberList(); // keep the stored name in sync (RF-6)
+                this.rememberList(); // keep the stored name in sync
             } catch (e) {
                 this.error = this.writeError(e, 'No se pudo renombrar la lista.');
             }
@@ -443,4 +508,10 @@ document.addEventListener('alpine:init', () => {
 });
 
 window.Alpine = Alpine;
-Alpine.start();
+
+// Deferred so page-specific modules loaded after this one (e.g. home.js,
+// rendered via @yield('scripts') at the bottom of layout.blade.php) get a
+// chance to register their own Alpine.data() components on 'alpine:init'
+// before Alpine.start() fires that event. Module scripts all finish running
+// before 'DOMContentLoaded', so this still starts Alpine as soon as possible.
+document.addEventListener('DOMContentLoaded', () => Alpine.start());

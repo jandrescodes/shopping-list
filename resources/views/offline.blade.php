@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2563eb">
     <title>Sin conexión</title>
-    {{-- Standalone offline fallback (RF-29): no @vite, no manifest, no service
-         worker registration. It must render from the SW cache with zero network
-         and no build assets. --}}
+    {{-- Standalone offline fallback: no @vite, no manifest, no service worker
+         registration. It must render from the SW cache with zero network and
+         no build assets. --}}
     <style>
         body {
             margin: 0;

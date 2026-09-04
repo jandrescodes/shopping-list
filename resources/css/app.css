@@ -9,6 +9,17 @@
     display: none !important;
 }
 
+/* Tailwind ya no fuerza cursor:pointer en <button>/[role=button] (cambio de
+   Preflight en 3.4+); sin esto los controles se sienten inertes. */
+button:not(:disabled),
+[role='button'] {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
