@@ -167,8 +167,13 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'price' => [
+            'regex' => 'El precio debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 12,50.',
+        ],
+        'currency' => [
+            'required' => 'La moneda no puede quedar vacía.',
+            'max' => 'La moneda no puede superar los 5 caracteres.',
+            'string' => 'La moneda debe ser un texto.',
         ],
     ],
 

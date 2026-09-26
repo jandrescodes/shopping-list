@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\UpdateItemRequest;
 use App\Http\Resources\ItemResource;
+use App\Http\Resources\ShoppingListResource;
 use App\Models\Item;
 use App\Models\ShoppingList;
 use App\Support\ListVersion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 
 class ItemController extends Controller
 {
@@ -91,18 +93,21 @@ class ItemController extends Controller
      * is a delta: items changed since (version > cursor) plus the ids of items
      * tombstoned in that window. With the cursor missing, non-integer or past
      * the current version, the response is the full active state with an empty
-     * deleted_ids. Either way `cursor` is the list's current version.
+     * deleted_ids. Either way the response carries `cursor` (the list's current
+     * version) and the `list` block with the list's current name and currency.
      */
     public function sync(Request $request, ShoppingList $list): JsonResponse
     {
         $version = $list->version;
         $cursor = $list->resolveSyncCursor($request->query('cursor'));
+        $listBlock = Arr::only(ShoppingListResource::make($list)->resolve(), ['name', 'currency']);
 
         if ($cursor === null) {
             return response()->json([
                 'items' => ItemResource::collection($list->activeItemsOrdered())->resolve(),
                 'deleted_ids' => [],
                 'cursor' => $version,
+                'list' => $listBlock,
             ]);
         }
 
@@ -110,6 +115,7 @@ class ItemController extends Controller
             'items' => ItemResource::collection($list->activeItemsChangedSince($cursor))->resolve(),
             'deleted_ids' => $list->deletedItemIdsSince($cursor),
             'cursor' => $version,
+            'list' => $listBlock,
         ]);
     }
 }

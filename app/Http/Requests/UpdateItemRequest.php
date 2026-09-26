@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\NormalizesPrice;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateItemRequest extends FormRequest
 {
+    use NormalizesPrice;
+
     public function authorize(): bool
     {
         return true;
@@ -22,12 +25,15 @@ class UpdateItemRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:100'],
             'quantity' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'price' => ['sometimes', 'nullable', 'regex:/^\d{1,8}(\.\d{1,2})?$/', 'min:0', 'max:99999999.99'],
             'is_purchased' => ['sometimes', 'boolean'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        $this->normalizePrice();
+
         $clean = [];
 
         if (is_string($this->input('name'))) {
@@ -50,6 +56,7 @@ class UpdateItemRequest extends FormRequest
         return [
             'name' => 'nombre',
             'quantity' => 'cantidad',
+            'price' => 'precio',
             'is_purchased' => 'estado de comprado',
         ];
     }

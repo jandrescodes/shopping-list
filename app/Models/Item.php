@@ -12,10 +12,11 @@ class Item extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'quantity', 'added_by', 'is_purchased'];
+    protected $fillable = ['name', 'quantity', 'price', 'added_by', 'is_purchased'];
 
     protected $casts = [
         'is_purchased' => 'boolean',
+        'price' => 'decimal:2',
     ];
 
     public function shoppingList(): BelongsTo
@@ -36,6 +37,12 @@ class Item extends Model
     {
         $trimmed = $value === null ? null : trim($value);
         $this->attributes['quantity'] = $trimmed === '' ? null : $trimmed;
+    }
+
+    public function setPriceAttribute(?string $value): void
+    {
+        $trimmed = $value === null ? null : trim($value);
+        $this->attributes['price'] = $trimmed === '' ? null : $trimmed;
     }
 
     public function setAddedByAttribute(?string $value): void

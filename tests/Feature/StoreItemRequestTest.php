@@ -50,3 +50,51 @@ it('keeps trimmed quantity and added_by when present', function () {
         ->assertOk()
         ->assertExactJson(['name' => 'Leche', 'quantity' => '2 L', 'added_by' => 'Ana']);
 });
+
+it('canonicalizes every accepted price shape', function () {
+    $cases = [
+        ['12.50', '12.50'],
+        ['12,5', '12.5'],
+        ['12', '12'],
+        ['0', '0'],
+        [' 12,50 ', '12.50'],
+    ];
+
+    foreach ($cases as [$input, $canonical]) {
+        $this->postJson('/_test/store-item', ['name' => 'Leche', 'price' => $input])
+            ->assertOk()
+            ->assertJsonPath('price', $canonical);
+    }
+});
+
+it('turns an empty or separator-only price into null', function () {
+    foreach (['', '   ', ',', '.', ' ,. '] as $input) {
+        $this->postJson('/_test/store-item', ['name' => 'Leche', 'price' => $input])
+            ->assertOk()
+            ->assertJsonPath('price', null);
+    }
+});
+
+it('rejects invalid prices with a Spanish message', function () {
+    foreach (['-1', 'abc', '1.999', '1.234,50', '999999999.99'] as $price) {
+        $this->postJson('/_test/store-item', ['name' => 'Leche', 'price' => $price])
+            ->assertStatus(422)
+            ->assertJsonPath(
+                'errors.price.0',
+                'El precio debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 12,50.'
+            );
+    }
+});
+
+it('answers a rejected price with no raw placeholder in the body', function () {
+    $response = $this->postJson('/_test/store-item', ['name' => 'Leche', 'price' => '1.999'])
+        ->assertStatus(422)
+        ->assertJsonPath(
+            'message',
+            'El precio debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 12,50.'
+        );
+
+    expect($response->getContent())
+        ->not->toContain(':decimal')
+        ->not->toContain(':attribute');
+});

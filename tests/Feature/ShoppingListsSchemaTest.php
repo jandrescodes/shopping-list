@@ -11,10 +11,23 @@ it('creates the shopping_lists table with the expected columns', function () {
         'id',
         'slug',
         'name',
+        'currency',
         'version',
         'created_at',
         'updated_at',
     ]))->toBeTrue();
+});
+
+it('adds a currency column of five characters defaulting to Bs', function () {
+    expect(Schema::hasColumn('shopping_lists', 'currency'))->toBeTrue()
+        ->and(Schema::getColumnType('shopping_lists', 'currency'))->toBe('varchar');
+
+    $currency = collect(Schema::getColumns('shopping_lists'))->firstWhere('name', 'currency');
+
+    expect($currency)->not->toBeNull()
+        ->and(preg_replace('/\s+/', '', $currency['type']))->toBe('varchar(5)')
+        ->and($currency['nullable'])->toBeFalse()
+        ->and($currency['default'])->toBeIn(['Bs', "'Bs'"]);
 });
 
 it('defaults the version counter to zero', function () {

@@ -3,7 +3,7 @@
 use App\Http\Resources\ItemResource;
 use App\Models\ShoppingList;
 
-it('returns exactly the expected 6 keys via ItemResource', function () {
+it('returns exactly the expected 7 keys via ItemResource', function () {
     $list = ShoppingList::create(['name' => 'Feria']);
     $item = $list->items()->create([
         'name' => 'Leche',
@@ -17,6 +17,7 @@ it('returns exactly the expected 6 keys via ItemResource', function () {
         'id',
         'name',
         'quantity',
+        'price',
         'added_by',
         'is_purchased',
         'version',

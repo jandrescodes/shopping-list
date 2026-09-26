@@ -13,6 +13,9 @@ it('renders the list page with its header, add input and list-level actions', fu
     $response->assertOk();
     $response->assertSee('Feria del sábado');
     $response->assertSee('id="new-item"', false);
+    $response->assertSee('id="new-quantity"', false);
+    $response->assertSee('name="quantity"', false);
+    $response->assertSee('maxlength="50"', false);
     $response->assertSee('Renombrar');
     $response->assertSee('Eliminar');
     $response->assertSee('Limpiar comprados');
@@ -53,6 +56,70 @@ it('escapes user content, never rendering it as HTML (RF-32)', function () {
 
 it('returns 404 for an unknown list slug', function () {
     $this->get('/l/does-not-exist')->assertNotFound();
+});
+
+it('offers an optional price input in a second row of the add form (RF-1)', function () {
+    $list = ShoppingList::factory()->create();
+
+    $this->get("/l/{$list->slug}")
+        ->assertOk()
+        ->assertSee('id="new-price"', false)
+        ->assertSee('name="price"', false)
+        ->assertSee('inputmode="decimal"', false)
+        ->assertSee('Precio (opcional)');
+});
+
+it('renders the currency chip with the list currency and its inline edit input (RF-11)', function () {
+    $list = ShoppingList::factory()->create(['currency' => 'US$']);
+
+    $response = $this->get("/l/{$list->slug}")->assertOk();
+
+    $response->assertSee('id="currency-chip"', false);
+    $response->assertSee('US$');
+    $response->assertSee('id="currency-input"', false);
+    $response->assertSee('maxlength="5"', false);
+    $response->assertSee('Moneda de la lista');
+});
+
+it('shows the price beside its item and no marker when the item has none (RF-8)', function () {
+    $list = ShoppingList::factory()->create();
+    Item::factory()->for($list)->create(['name' => 'Leche', 'price' => '12.50', 'is_purchased' => false]);
+    Item::factory()->for($list)->create(['name' => 'Pan', 'price' => null, 'is_purchased' => false]);
+
+    $html = $this->get("/l/{$list->slug}")->assertOk()->getContent();
+
+    expect($html)->toContain('Leche');
+    // The row renders the number only; the currency symbol belongs to the
+    // header and the total (RF-14), and the price-less item renders nothing.
+    expect($html)->toContain('12,50');
+    // Counted over the server-rendered rows only: the Alpine row lives in a
+    // <template> (a possibility, not a rendered item), so it would double
+    // the count for every list regardless of its data.
+    $serverHtml = substr($html, 0, strpos($html, '<template'));
+    expect(substr_count($serverHtml, 'item-price'))->toBe(1);
+});
+
+it('renders the pending total with the list currency, counting only unpaid items (RF-15, RF-16)', function () {
+    $list = ShoppingList::factory()->create();
+    Item::factory()->for($list)->create(['name' => 'Leche', 'price' => '12.50', 'is_purchased' => false]);
+    Item::factory()->for($list)->create(['name' => 'Pan', 'price' => '3.50', 'is_purchased' => true]);
+
+    $response = $this->get("/l/{$list->slug}")->assertOk();
+
+    $response->assertSee('pending-total', false);
+    // 3,50 belongs to an already purchased item, so it stays out of the total.
+    $response->assertSee('Bs 12,50');
+});
+
+it('hides the total while no pending item carries a price (RF-17)', function () {
+    $list = ShoppingList::factory()->create();
+    Item::factory()->for($list)->create(['name' => 'Pan', 'price' => '3.50', 'is_purchased' => true]);
+    Item::factory()->for($list)->create(['name' => 'Sal', 'price' => null, 'is_purchased' => false]);
+
+    $this->get("/l/{$list->slug}")
+        ->assertOk()
+        ->assertDontSee('pending-total', false)
+        ->assertDontSee('Bs ');
 });
 
 it('offers a link back to the home page', function () {

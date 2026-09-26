@@ -59,3 +59,17 @@ it('bumps the version counter and returns the new value', function () {
     expect($newVersion)->toBe(2);
     expect($list->fresh()->version)->toBe(2);
 });
+
+it('is born with Bs as its default currency', function () {
+    $list = ShoppingList::factory()->create();
+
+    expect($list->fresh()->currency)->toBe('Bs');
+});
+
+it('mass assigns currency', function () {
+    $list = ShoppingList::factory()->create();
+
+    $list->update(['currency' => 'US$']);
+
+    expect($list->fresh()->currency)->toBe('US$');
+});

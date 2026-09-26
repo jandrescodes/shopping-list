@@ -13,16 +13,31 @@ it('creates an item, not purchased, in ItemResource shape and stamps the version
     ]);
 
     $response->assertCreated()
-        ->assertExactJsonStructure(['id', 'name', 'quantity', 'added_by', 'is_purchased', 'version'])
+        ->assertExactJsonStructure(['id', 'name', 'quantity', 'price', 'added_by', 'is_purchased', 'version'])
         ->assertJson([
             'name' => 'Leche',
             'quantity' => '2 L',
+            'price' => null,
             'added_by' => 'Ana',
             'is_purchased' => false,
             'version' => 1,
         ]);
 
     expect($list->fresh()->version)->toBe(1);
+});
+
+it('returns the price as a canonical decimal string', function () {
+    $list = ShoppingList::factory()->create();
+
+    $response = $this->postJson("/api/lists/{$list->slug}/items", [
+        'name' => 'Leche',
+        'price' => '12,50',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('price', '12.50');
+
+    $this->assertIsString($response->json('price'));
 });
 
 it('stores an item without quantity or added_by', function () {

@@ -18,13 +18,16 @@ class StoreListRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:60'],
+            'currency' => ['sometimes', 'required', 'string', 'max:5'],
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        if (is_string($this->input('name'))) {
-            $this->merge(['name' => trim($this->input('name'))]);
+        foreach (['name', 'currency'] as $field) {
+            if (is_string($this->input($field))) {
+                $this->merge([$field => trim($this->input($field))]);
+            }
         }
     }
 
@@ -33,6 +36,9 @@ class StoreListRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['name' => 'nombre'];
+        return [
+            'name' => 'nombre',
+            'currency' => 'moneda',
+        ];
     }
 }

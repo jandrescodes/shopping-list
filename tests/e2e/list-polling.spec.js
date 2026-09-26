@@ -83,3 +83,18 @@ test('a list deleted from another device shows the "no longer exists" notice', a
 
     await expect(page.locator('#list-app p[role="alert"]')).toContainText('ya no existe', { timeout: 6000 });
 });
+
+test('a rename and a currency change from another client show up without reloading', async ({ page, request }) => {
+    const slug = await createList(request, 'Feria');
+    await page.goto(`/l/${slug}`);
+    await expect(page.locator('#client-item-list')).toBeVisible();
+
+    let navigated = false;
+    page.on('framenavigated', () => { navigated = true; });
+
+    await request.patch(`/api/lists/${slug}`, { data: { name: 'Feria grande', currency: 'US$' } });
+
+    await expect(page.locator('#list-app h1')).toHaveText('Feria grande', { timeout: 6000 });
+    await expect(page.locator('#currency-chip')).toHaveText('US$', { timeout: 6000 });
+    expect(navigated).toBe(false);
+});

@@ -48,3 +48,30 @@ it('validates only the fields present in the request', function () {
         ->assertOk()
         ->assertExactJson([]);
 });
+
+it('accepts a null price to clear it', function () {
+    $this->patchJson('/_test/update-item', ['price' => null])
+        ->assertOk()
+        ->assertExactJson(['price' => null]);
+});
+
+it('leaves price out of validated when it is absent', function () {
+    $this->patchJson('/_test/update-item', ['name' => 'Pan'])
+        ->assertOk()
+        ->assertExactJson(['name' => 'Pan']);
+});
+
+it('validates only price when it is the only field sent', function () {
+    $this->patchJson('/_test/update-item', ['price' => '12,50'])
+        ->assertOk()
+        ->assertExactJson(['price' => '12.50']);
+});
+
+it('rejects an invalid price with a Spanish message', function () {
+    $this->patchJson('/_test/update-item', ['price' => '1.999'])
+        ->assertStatus(422)
+        ->assertJsonPath(
+            'errors.price.0',
+            'El precio debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 12,50.'
+        );
+});

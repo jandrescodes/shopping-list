@@ -18,11 +18,12 @@ it('returns the list with version and server-ordered items', function () {
     $response->assertOk()
         ->assertJsonPath('slug', $list->slug)
         ->assertJsonPath('name', 'Feria')
+        ->assertJsonPath('currency', 'Bs')
         ->assertJsonPath('version', 7);
 
     expect(array_column($response->json('items'), 'name'))->toBe(['A', 'B', 'C', 'D']);
     expect(array_keys($response->json('items.0')))
-        ->toBe(['id', 'name', 'quantity', 'added_by', 'is_purchased', 'version']);
+        ->toBe(['id', 'name', 'quantity', 'price', 'added_by', 'is_purchased', 'version']);
 });
 
 it('returns 404 for an unknown slug', function () {

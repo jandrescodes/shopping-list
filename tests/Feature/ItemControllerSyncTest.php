@@ -37,12 +37,39 @@ it('returns a delta with changed items and tombstoned ids for a valid cursor', f
         ->and($response->json('cursor'))->toBe($list->fresh()->version);
 
     // Tombstone payload is id-only, never name/added_by/timestamps.
-    expect($response->json('items.0'))->toHaveKeys(['id', 'name', 'quantity', 'added_by', 'is_purchased', 'version']);
+    expect($response->json('items.0'))->toHaveKeys(['id', 'name', 'quantity', 'price', 'added_by', 'is_purchased', 'version']);
 
     // A second call with the fresh cursor yields nothing new.
+    $fresh = $list->fresh();
+
     $this->getJson("/api/lists/{$list->slug}/items?cursor=".$response->json('cursor'))
         ->assertOk()
-        ->assertExactJson(['items' => [], 'deleted_ids' => [], 'cursor' => $list->fresh()->version]);
+        ->assertExactJson([
+            'items' => [],
+            'deleted_ids' => [],
+            'cursor' => $fresh->version,
+            'list' => ['name' => $fresh->name, 'currency' => $fresh->currency],
+        ]);
+});
+
+it('brings the new name and currency on the sync after a list write', function () {
+    $list = ShoppingList::factory()->create();
+    $base = $this->getJson("/api/lists/{$list->slug}/items")->json('cursor');
+
+    expect($this->getJson("/api/lists/{$list->slug}/items")->json('list'))
+        ->toEqual(['name' => $list->name, 'currency' => $list->fresh()->currency]);
+
+    $this->patchJson("/api/lists/{$list->slug}", [
+        'name' => 'Mercado',
+        'currency' => 'USD',
+    ])->assertOk();
+
+    $response = $this->getJson("/api/lists/{$list->slug}/items?cursor={$base}")->assertOk();
+
+    expect($response->json('list'))
+        ->toEqual(['name' => 'Mercado', 'currency' => 'USD'])
+        ->and($response->json('cursor'))->toBe($list->fresh()->version)
+        ->and($response->json('deleted_ids'))->toBe([]);
 });
 
 it('falls back to the full state for a non-integer or out-of-range cursor', function () {

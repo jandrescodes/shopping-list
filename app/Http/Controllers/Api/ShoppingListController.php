@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreListRequest;
 use App\Http\Requests\UpdateListRequest;
 use App\Http\Resources\ItemResource;
+use App\Http\Resources\ShoppingListResource;
 use App\Models\ShoppingList;
 use App\Support\ListVersion;
 use Illuminate\Http\JsonResponse;
@@ -33,17 +34,15 @@ class ShoppingListController extends Controller
      */
     public function show(ShoppingList $list): JsonResponse
     {
-        return response()->json([
-            'slug' => $list->slug,
-            'name' => $list->name,
-            'version' => $list->version,
-            'items' => ItemResource::collection($list->activeItemsOrdered())->resolve(),
-        ]);
+        return response()->json(array_merge(
+            ShoppingListResource::make($list)->resolve(),
+            ['items' => ItemResource::collection($list->activeItemsOrdered())->resolve()],
+        ));
     }
 
     /**
-     * Rename a list, keeping its slug and bumping the version counter through
-     * the locked versioned-write helper.
+     * Rename a list or change its currency, keeping its slug and bumping the
+     * version counter through the locked versioned-write helper.
      */
     public function update(UpdateListRequest $request, ShoppingList $list): JsonResponse
     {
@@ -51,11 +50,7 @@ class ShoppingListController extends Controller
             $locked->fill($request->validated())->save();
         });
 
-        return response()->json([
-            'slug' => $list->slug,
-            'name' => $list->name,
-            'version' => $list->version,
-        ]);
+        return response()->json(ShoppingListResource::make($list)->resolve());
     }
 
     /**

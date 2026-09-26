@@ -50,3 +50,17 @@ it('rolls back the version bump when the callback throws', function () {
 
     expect($list->fresh()->version)->toBe(0);
 });
+
+it('bumps the version when only the currency changes', function () {
+    $list = ShoppingList::create(['name' => 'Feria']);
+
+    ListVersion::write($list, function (ShoppingList $locked) {
+        $locked->fill(['currency' => 'USD'])->save();
+
+        return null;
+    });
+
+    expect($list->fresh()->version)->toBe(1)
+        ->and($list->fresh()->currency)->toBe('USD')
+        ->and($list->fresh()->name)->toBe('Feria');
+});

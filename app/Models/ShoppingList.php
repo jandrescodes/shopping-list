@@ -13,7 +13,7 @@ class ShoppingList extends Model
 
     public const MAX_ACTIVE_ITEMS = 200;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'currency'];
 
     /**
      * Test seam: when set, replaces the CSPRNG slug generator so a test can
