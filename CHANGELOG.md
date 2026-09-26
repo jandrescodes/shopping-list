@@ -5,9 +5,17 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [1.2.0] - 2026-09-26
 
-_Nada por ahora._
+### Añadido
+
+- **Precios, moneda y cantidades editables.** Los ítems admiten precios
+  opcionales con validación y normalización de coma o punto; cada lista tiene
+  moneda configurable y muestra el total pendiente con precisión en centavos.
+  La interfaz también permite indicar y editar la cantidad, preservando los
+  borradores durante la sincronización por polling.
+- Sincronización de nombre, moneda y precios entre dispositivos, con cobertura
+  API, persistencia y Playwright.
 
 ## [1.1.0] - 2026-09-04
 
@@ -118,6 +126,6 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
-[Sin publicar]: https://github.com/jandrescodes/shopping-list/compare/1.1.0...HEAD
+[1.2.0]: https://github.com/jandrescodes/shopping-list/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/jandrescodes/shopping-list/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/jandrescodes/shopping-list/releases/tag/1.0.0

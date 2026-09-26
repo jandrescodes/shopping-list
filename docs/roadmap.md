@@ -25,9 +25,15 @@
   shell offline en primer arranque y demo de sync en dos celulares.
   → `specs/001-lista-compras-familiar/`
 
+- **Precios de ítems, moneda de la lista y cantidad editable** — implementación
+  completa (T0-T25), versión **1.2.0**. Validada RF por RF en
+  `specs/002-precios-y-moneda/validation.md` (automatización en verde;
+  verificación manual en dos celulares pendiente).
+  → `specs/002-precios-y-moneda/`
+
 ## Siguiente 🔜
 
-- Sin feature activa. La próxima se crea como `specs/002-<slug>/`.
+- Sin feature activa. La próxima se crea como `specs/003-<slug>/`.
 
 ## Backlog / ideas 💡
 

@@ -24,6 +24,10 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
   se propagan entre dispositivos por _polling_ HTTP (sin WebSockets).
 - **Resolución de conflictos** campo por campo con versionado optimista
   (última escritura gana, por campo).
+- **Precios y moneda.** Cada ítem puede tener un precio opcional; cada lista
+  define su moneda y muestra el total pendiente con formato decimal preciso.
+- **Cantidad editable.** La cantidad se puede indicar al agregar un ítem o
+  corregir después desde la lista.
 - **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla
   completa y mantiene visible la última lectura conocida sin conexión.
 - **Mobile-first.** Diseñada y probada primero para pantalla de celular.

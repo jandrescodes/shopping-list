@@ -111,6 +111,15 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   type="module">` — deferred por naturaleza — ya corrieron y registraron sus
   componentes).
 
+- **Las clases de fondo de los avisos son reservadas para los tests e2e**:
+  `list-*.spec.js` localizan cada aviso con `#list-app .bg-<color>`
+  (`.bg-amber-50` offline, `.bg-green-50` copiado, `.bg-gray-100` URL en
+  claro), así que **un elemento nuevo no debe reutilizar esas clases**. Cada
+  componente nuevo lleva su propio `id` (p. ej. `#currency-chip`) o una
+  clase semántica, y se localiza con eso. Rompido en real: el chip de moneda
+  se estilizó con `bg-gray-100` y `list-share.spec.js:70` falló con
+  "strict mode violation: resolved to 2 elements".
+
 ## Al terminar cualquier tarea
 
 - Ejecuta `php artisan test` y confirma en la respuesta que pasa.
