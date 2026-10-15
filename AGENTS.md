@@ -30,7 +30,8 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   (error, offline, "enlace copiado"). Scopea por la clase de fondo del aviso
   concreto (`.bg-amber-50`, `.bg-green-50`, …) o `hasText`.
   Primera vez: `npx playwright install chromium`.
-- Lint/formato: `php artisan pint`
+- Lint/formato: `vendor/bin/pint` (`php artisan pint` no existe: Pint no
+  registra comando de Artisan en este repo)
 - Assets: `npm run build`
 
 > PHP 8.2 (XAMPP) fija el techo: Pest 4 y `pest-plugin-browser` exigen 8.3+, así
@@ -45,7 +46,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   en español.
 - Validación de entradas con Form Requests.
 - URLs públicas de una lista por `slug`, nunca por `id`.
-- Interfaz mobile-first. Un solo tema por ahora; modo oscuro es mejora futura.
+- Interfaz mobile-first que también funciona en desktop: en `md+` el contenido
+  va en una card centrada con barra de marca encima (`layout.blade.php`). Un
+  solo tema por ahora; modo oscuro es mejora futura.
 - Package manager: `npm` (no pnpm). Dependencias de front con versión exacta
   pineada (`npm i --save-exact`); del front, a Hostinger sube `public/build/`
   (compilado en el runner), nunca `node_modules/`.
@@ -67,7 +70,7 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   `api/*` (o que espera JSON) responde `404 {"message":"Not Found"}` uniforme —
   lista borrada, slug inexistente o ruta desconocida son indistinguibles (RF-4).
   También registra `App\Http\Middleware\Hsts` de forma global (`Strict-
-  Transport-Security`, todas las respuestas), aparte del alias `noindex` que
+Transport-Security`, todas las respuestas), aparte del alias `noindex` que
   solo aplica a `/l/{slug}`.
 
 ## Reglas
@@ -102,13 +105,13 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   **Gotcha de orden**: `list.js` es la entrada global que llama
   `Alpine.start()`; si se añade una entrada de página (como `home.js`) que
   registra sus propios `Alpine.data()` en `alpine:init`, esa entrada se
-  imprime *después* de `list.js` en el HTML (va en `@yield('scripts')`, al
+  imprime _después_ de `list.js` en el HTML (va en `@yield('scripts')`, al
   final de `<body>`), así que si `Alpine.start()` corriera de forma síncrona
   al final de `list.js` dispararía `alpine:init` antes de que el módulo de
   la página hubiera corrido, dejando sus componentes sin definir
   (`ReferenceError` en consola). Por eso `Alpine.start()` va envuelto en un
   listener de `DOMContentLoaded` (dispara después de que todos los `<script
-  type="module">` — deferred por naturaleza — ya corrieron y registraron sus
+type="module">` — deferred por naturaleza — ya corrieron y registraron sus
   componentes).
 
 - **Las clases de fondo de los avisos son reservadas para los tests e2e**:
@@ -125,7 +128,7 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - Ejecuta `php artisan test` y confirma en la respuesta que pasa.
 - Si tocaste la capa de cliente (`resources/js/`), ejecuta también
   `npx playwright test` y confírmalo.
-- Ejecuta `php artisan pint` sobre los archivos tocados.
+- Ejecuta `vendor/bin/pint` sobre los archivos tocados.
 
 ## Planificación de features (Spec-Driven Development)
 
@@ -181,3 +184,41 @@ Una feature no está cerrada hasta que existen sus cuatro archivos.
 ### Lecciones de Laravel
 
 - `Schema::getColumns()` devuelve `default` como el string `'NULL'` (no `null`) en MariaDB para una columna sin default; un `->toBeNull()` en un test de schema falla aunque el esquema esté bien. Usa `->toBeIn([null, 'NULL'])` o, mejor, un assert de comportamiento (insertar sin la columna y leer). Vigila que `ADD col ... DEFAULT 0` rellena las filas existentes con `0`, corrupción silenciosa donde `NULL` significa "sin valor".
+
+### Lecciones de UI
+
+- **Targets táctiles de 44px reales.** Los controles interactivos llevan
+  `min-h-11` (`inline-flex items-center`), no un pseudo-elemento `before:` de
+  44px: estos se solapan con los vecinos y provocan toques en el control
+  equivocado. El pseudo-elemento solo vale para un chip cuya fila ya mide
+  ≥44px, acotado a esa fila (`item-quantity`).
+- **Texto atenuado.** Nunca `text-gray-400` sobre blanco (~2.5:1); mínimo
+  `text-gray-500`, y `text-gray-600` para texto de 12px sobre fondo no blanco.
+  Un ítem comprado se marca con el checkbox y `line-through` **solo en el
+  nombre**: precio, cantidad y autor quedan atenuados pero legibles.
+- **Fila de ítem.** Grid `grid-cols-[2rem_minmax(0,1fr)_auto_2rem]`: checkbox,
+  nombre, precio a la derecha (`tabular-nums`) y `×`; cantidad y autor en una
+  segunda línea que solo existe si hay alguno. La lista previa a la
+  hidratación comparte las mismas columnas para que no salte al arrancar
+  Alpine. El nombre debe seguir siendo el primer `span` del `<li>` (los e2e lo
+  localizan así) y el tachado va en ese `span`, no en el `<li>`.
+- **Menú de opciones del encabezado** (`#list-menu-button` / `#list-menu`):
+  patrón disclosure (`aria-expanded`), sin `role="menu"`, que exigiría
+  navegación con flechas. `#currency-chip` vive **dentro** del menú cerrado: un
+  e2e debe abrirlo antes (`click('#list-menu-button')`). Una acción del menú
+  mueve el foco a propósito (`$nextTick(() => $refs.x.focus())`) y lo devuelve
+  al cancelar o guardar; si no, cae al `<body>`. Un panel `role="alertdialog"`
+  enfoca su botón seguro (Cancelar) al abrirse.
+- **Un solo aviso de conexión.** `showOfflineNotice` (`list.js`) oculta el
+  aviso ámbar mientras el error visible es el de escritura sin red, que ya
+  dice "Sin conexión"; así no se apilan dos avisos casi iguales en mobile.
+- **Clases canónicas de Tailwind**: `mt-4.5`, no `mt-[18px]`
+  (tailwindcss-intellisense lo marca).
+- **Verificación visual y de accesibilidad.** axe-core (`wcag2a`, `wcag2aa`,
+  `wcag21aa`) a 375 y 1280px, con las transiciones CSS desactivadas, más una
+  pasada de teclado (orden de Tab, foco visible, foco tras cada acción). Instala
+  axe fuera del proyecto: no es dependencia. Crear listas de prueba choca con
+  `lists-create` (10 por hora por IP en dev): reutiliza una existente en modo
+  lectura y borra las tuyas por su marker.
+- **Formateador del IDE.** Debe respetar Pint: uno distinto reescribió
+  `fn ($x)` a `fn($x)` en los tests y rompió la indentación de este archivo.
