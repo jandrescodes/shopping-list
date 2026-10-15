@@ -171,3 +171,13 @@ Una feature no está cerrada hasta que existen sus cuatro archivos.
 - El bloque `## Cierre de la feature` de `tasks.md` va fuera de la numeración
   `Tn` y no se implementa con `/sdd:implement`.
 - No modificar `specs/` fuera de su fase salvo petición explícita.
+
+### Lecciones de tests
+
+- Un fixture/trait que haga `DROP`/`CREATE` sobre un recurso de nombre fijo (BD, archivo) debe sufijarlo con un identificador por proceso (`getmypid()`) si los tests corren en paralelo (paratest).
+- Un test que resetea un singleton/global compartido (conexión de BD, config) debe restaurar el doble de test en `tearDown`, no dejarlo en `null`: con orden aleatorio, los tests siguientes intentarían conectar al recurso real. "Pasa en local" no prueba nada si local tiene el recurso real; para reproducir CI corre sin `.env`/`.env.testing` y con `--order-by=default`.
+- Nunca calcules la fecha límite de un test con `date()`/`strtotime()` para compararla contra `NOW()`/`CURDATE()` de la BD: el reloj/timezone del proceso y el del servidor de BD pueden diferir. Usa una expresión SQL (`NOW() - INTERVAL 1 HOUR`).
+
+### Lecciones de Laravel
+
+- `Schema::getColumns()` devuelve `default` como el string `'NULL'` (no `null`) en MariaDB para una columna sin default; un `->toBeNull()` en un test de schema falla aunque el esquema esté bien. Usa `->toBeIn([null, 'NULL'])` o, mejor, un assert de comportamiento (insertar sin la columna y leer). Vigila que `ADD col ... DEFAULT 0` rellena las filas existentes con `0`, corrupción silenciosa donde `NULL` significa "sin valor".
