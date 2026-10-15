@@ -64,7 +64,7 @@ it('reports an item created and deleted between two cursors only in deleted_ids'
 
 it('cuts by the version counter alone, with no clock involved', function () {
     $list = ShoppingList::factory()->create();
-    $old = Item::factory()->for($list, 'shoppingList')->create();
+    Item::factory()->for($list, 'shoppingList')->create();
     $base = $this->getJson("/api/lists/{$list->slug}/items")->json('cursor');
 
     // Jump a year forward: a time-based cut would drift, a counter-based one

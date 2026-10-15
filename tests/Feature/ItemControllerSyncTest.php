@@ -20,7 +20,7 @@ it('returns the full active state ordered by RF-18 when the cursor is missing', 
 
 it('returns a delta with changed items and tombstoned ids for a valid cursor', function () {
     $list = ShoppingList::factory()->create();
-    $keep = Item::factory()->for($list, 'shoppingList')->create();
+    Item::factory()->for($list, 'shoppingList')->create();
     $changed = Item::factory()->for($list, 'shoppingList')->create();
     $removed = Item::factory()->for($list, 'shoppingList')->create(['added_by' => 'Ana']);
 

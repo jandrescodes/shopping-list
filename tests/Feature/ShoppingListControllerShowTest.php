@@ -8,10 +8,10 @@ it('returns the list with version and server-ordered items', function () {
     $list->forceFill(['version' => 7])->save();
 
     // Insert in a deliberately mixed order.
-    $b = Item::factory()->for($list)->create(['name' => 'B', 'is_purchased' => false, 'created_at' => now()->subMinutes(5)]);
-    $d = Item::factory()->for($list)->create(['name' => 'D', 'is_purchased' => true, 'created_at' => now()->subMinutes(1)]);
-    $a = Item::factory()->for($list)->create(['name' => 'A', 'is_purchased' => false, 'created_at' => now()->subMinutes(10)]);
-    $c = Item::factory()->for($list)->create(['name' => 'C', 'is_purchased' => true, 'created_at' => now()->subMinutes(8)]);
+    Item::factory()->for($list)->create(['name' => 'B', 'is_purchased' => false, 'created_at' => now()->subMinutes(5)]);
+    Item::factory()->for($list)->create(['name' => 'D', 'is_purchased' => true, 'created_at' => now()->subMinutes(1)]);
+    Item::factory()->for($list)->create(['name' => 'A', 'is_purchased' => false, 'created_at' => now()->subMinutes(10)]);
+    Item::factory()->for($list)->create(['name' => 'C', 'is_purchased' => true, 'created_at' => now()->subMinutes(8)]);
 
     $response = $this->getJson("/api/lists/{$list->slug}");
 
