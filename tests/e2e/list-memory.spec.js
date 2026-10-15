@@ -55,6 +55,7 @@ test('renaming the list refreshes the stored name', async ({ page, request }) =>
     await page.goto(`/l/${slug}`);
     await expect(page.locator('#client-item-list')).toBeVisible();
 
+    await page.locator('#list-menu-button').click();
     await page.getByRole('button', { name: 'Renombrar' }).click();
     await page.fill('#rename-input', 'Feria grande');
     await page.click('button[type="submit"]:has-text("Guardar")');

@@ -121,6 +121,7 @@ document.addEventListener('alpine:init', () => {
         editingName: false,
         editingCurrency: false,
         confirmingDelete: false,
+        menuOpen: false,
         confirmingPurge: false,
         author: '',
         inMyLists: true,
@@ -337,6 +338,13 @@ document.addEventListener('alpine:init', () => {
             if (this.error === OFFLINE_MESSAGE) {
                 this.error = ''; // a clean sync means the connection is back
             }
+        },
+
+        // A failed offline write already says "Sin conexión" in the error
+        // banner; showing the amber one too would stack two near-identical
+        // notices, so it only appears while the error is something else.
+        get showOfflineNotice() {
+            return this.offline && this.error !== OFFLINE_MESSAGE;
         },
 
         get hasPurchased() {

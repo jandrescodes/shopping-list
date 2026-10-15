@@ -158,6 +158,7 @@ test('moves the currency symbol into the total when the list currency changes (R
     await addItem(page, 'Pan', '12,50');
     await expectTotal(page, 'Total Bs 12,50');
 
+    await page.locator('#list-menu-button').click();
     await page.locator('#currency-chip').click();
     await page.locator('#currency-input').fill('US$');
     await page.getByRole('button', { name: 'Guardar' }).click();
@@ -200,10 +201,12 @@ test('a rename and a currency change from another open device reach this one (RF
     let navigated = false;
     page.on('framenavigated', () => { navigated = true; });
 
+    await deviceA.locator('#list-menu-button').click();
     await deviceA.getByRole('button', { name: 'Renombrar' }).click();
     await deviceA.locator('#rename-input').fill('Feria grande');
     await deviceA.locator('#rename-input').press('Enter');
 
+    await deviceA.locator('#list-menu-button').click();
     await deviceA.locator('#currency-chip').click();
     await deviceA.locator('#currency-input').fill('US$');
     await deviceA.getByRole('button', { name: 'Guardar' }).click();

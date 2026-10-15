@@ -26,13 +26,13 @@ it('renders the list page with its header, add input and list-level actions', fu
 
 it('orders items with purchased ones struck through and last (RF-18)', function () {
     $list = ShoppingList::factory()->create();
-    $done = Item::factory()->for($list)->create(['name' => 'Comprado', 'is_purchased' => true]);
-    $todo = Item::factory()->for($list)->create(['name' => 'Pendiente', 'is_purchased' => false]);
+    Item::factory()->for($list)->create(['name' => 'Comprado', 'is_purchased' => true]);
+    Item::factory()->for($list)->create(['name' => 'Pendiente', 'is_purchased' => false]);
 
     $html = $this->get("/l/{$list->slug}")->assertOk()->getContent();
 
     expect(strpos($html, 'Pendiente'))->toBeLessThan(strpos($html, 'Comprado'));
-    expect($html)->toMatch('/line-through[^>]*data-item-id="'.$done->id.'"/');
+    expect($html)->toMatch('/line-through[^>]*>Comprado</');
 });
 
 it('shows an empty state when the list has no items', function () {

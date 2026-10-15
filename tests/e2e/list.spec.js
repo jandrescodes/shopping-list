@@ -48,7 +48,7 @@ test('marking an item purchased strikes it through and moves it last', async ({ 
     await page.locator('#client-item-list li[data-item-id]', { hasText: 'Manzanas' }).getByRole('checkbox').check();
 
     const purchased = page.locator('#client-item-list li[data-item-id]', { hasText: 'Manzanas' });
-    await expect(purchased).toHaveClass(/line-through/);
+    await expect(purchased.getByRole('button', { name: 'Editar Manzanas' })).toHaveClass(/line-through/);
     // Purchased rows sort after the pending ones (RF-18).
     await expect(rows.last()).toContainText('Manzanas');
 });
@@ -216,6 +216,7 @@ test('changing the currency updates the header chip without reloading (RF-11)', 
     let navigated = false;
     page.on('framenavigated', () => { navigated = true; });
 
+    await page.locator('#list-menu-button').click();
     await page.locator('#currency-chip').click();
     await expect(page.locator('#currency-input')).toHaveValue('Bs');
     await page.locator('#currency-input').fill('US$');
