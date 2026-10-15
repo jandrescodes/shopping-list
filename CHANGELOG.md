@@ -5,6 +5,44 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.2.1] - 2026-10-15
+
+### Cambiado
+
+- **Filas de la lista rediseñadas.** Checkbox, nombre, precio alineado a la
+  derecha (`tabular-nums`) y `×`; cantidad y autor en una segunda línea. Las
+  filas miden ~61-85px a 375px (antes ~116px) y la lista previa a la
+  hidratación comparte las columnas del cliente, sin salto al cargar Alpine.
+- **Menú de opciones en el encabezado.** Renombrar, Moneda y Eliminar lista
+  viven en un único botón "⋯" (patrón disclosure, cierra con Escape y clic
+  fuera); antes eran tres controles apiñados bajo el título.
+- **Formulario de agregar simplificado.** El ítem va primero, cantidad y
+  precio comparten fila, el nombre de quien agrega queda al final con
+  `text-base` (evita el zoom de iOS) y el placeholder de precio muestra la
+  moneda ("Precio (Bs)").
+- **Un solo aviso de conexión.** Una escritura fallida sin red ya no apila el
+  aviso rojo y el ámbar.
+- **Desktop.** Barra de marca sobre la card, margen superior de la card y
+  estados vacíos con icono en la lista y en "Mis listas".
+- Los ítems comprados se tachan solo en el nombre; precio, cantidad y autor
+  quedan atenuados pero legibles.
+
+### Corregido
+
+- **`×` de eliminar descolocado** en todos los anchos: faltaba un `</div>` en
+  la fila del cliente y el botón quedaba bajo los chips en vez de a la derecha.
+- **Contraste.** Texto de ítems comprados y botón `+ precio` pasaron de
+  `gray-400` (~2.5:1) a `gray-500`/`gray-600`.
+- **Targets táctiles** de 44px sin solapes en encabezado, enlaces de la lista,
+  botones de confirmación y controles de cada fila.
+- **Foco de teclado.** Tras elegir una opción del menú, guardar, cancelar o abrir
+  un panel de confirmación el foco ya no cae al `<body>`; Escape cancela el
+  renombrado, que además muestra el nombre vigente al reabrirse.
+- Barra de marca en un landmark (`<header>`) para axe; 0 violaciones axe a 375
+  y 1280px.
+- Variables sin uso en los tests de Pest y comando de Pint documentado como
+  `vendor/bin/pint` (`php artisan pint` no existe en este repo).
+
 ## [1.2.0] - 2026-09-26
 
 ### Añadido
@@ -126,6 +164,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
+[1.2.1]: https://github.com/jandrescodes/shopping-list/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/jandrescodes/shopping-list/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/jandrescodes/shopping-list/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/jandrescodes/shopping-list/releases/tag/1.0.0

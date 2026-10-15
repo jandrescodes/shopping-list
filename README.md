@@ -30,7 +30,8 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
   corregir después desde la lista.
 - **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla
   completa y mantiene visible la última lectura conocida sin conexión.
-- **Mobile-first.** Diseñada y probada primero para pantalla de celular.
+- **Mobile-first y responsive.** Diseñada primero para celular (targets
+  táctiles de 44px, contraste AA) y adaptada a desktop con una card centrada.
 - **Hosting compartido.** Sin colas, schedulers ni procesos persistentes:
   corre en un plan de hosting compartido estándar.
 
@@ -79,7 +80,7 @@ La app queda en `http://localhost:8000`.
 | Servidor de desarrollo | `php artisan serve`                                   |
 | Tests API/persistencia | `php artisan test` (Pest 3.8)                         |
 | Tests de navegador     | `npx playwright test`                                 |
-| Lint/formato           | `php artisan pint`                                    |
+| Lint/formato           | `vendor/bin/pint`                                     |
 | Compilar assets        | `npm run build`                                       |
 | Purgar lápidas         | `php artisan items:purge-tombstones --before=<fecha>` |
 
