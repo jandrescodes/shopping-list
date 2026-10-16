@@ -10,6 +10,9 @@ on:
         required: true
         default: "main"
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -32,23 +35,23 @@ jobs:
           --health-timeout=5s
           --health-retries=10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: "8.2"
           extensions: mbstring, pdo_mysql, bcmath, intl
           coverage: none
 
       - name: Cache Composer packages
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
+          key: composer-dev-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-dev-
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -85,19 +88,19 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: "8.2"
           extensions: mbstring, pdo_mysql, bcmath, intl
           coverage: none
 
       - name: Cache Composer packages
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
           key: composer-prod-${{ hashFiles('composer.lock') }}
@@ -107,7 +110,7 @@ jobs:
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "20"
           cache: npm
@@ -126,7 +129,7 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Subir archivos (rsync)
         env:
@@ -136,7 +139,7 @@ jobs:
           APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
         run: |
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT" \
+            -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT -o StrictHostKeyChecking=yes" \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='docs/' \
@@ -150,6 +153,10 @@ jobs:
             --exclude='auth.json' \
             --exclude='playwright.config.js' \
             --exclude='phpunit.xml' \
+            --exclude='/AGENTS.md' \
+            --exclude='/CLAUDE.md' \
+            --exclude='/README.md' \
+            --exclude='/CHANGELOG.md' \
             ./ "$SSH_USER@$SSH_HOST:$APP_PATH/"
 
       - name: Tareas post-deploy
@@ -159,7 +166,7 @@ jobs:
           SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
           APP_PATH: ${{ secrets.HOSTINGER_APP_PATH }}
         run: |
-          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o ConnectTimeout=60 \
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o ConnectTimeout=60 -o StrictHostKeyChecking=yes \
             "$SSH_USER@$SSH_HOST" \
             "cd '$APP_PATH' && \
              PHP=/opt/alt/php82/usr/bin/php && \
@@ -174,7 +181,7 @@ jobs:
           DOMAIN: ${{ secrets.HOSTINGER_DOMAIN }}
         run: |
           if [ -z "$DOMAIN" ]; then
-            echo "::notice::HOSTINGER_DOMAIN no configurado, se omite el health check."
+            echo "::warning::HOSTINGER_DOMAIN no configurado, se omite el health check."
             exit 0
           fi
           for i in $(seq 1 6); do
