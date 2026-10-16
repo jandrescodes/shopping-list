@@ -62,7 +62,10 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   `resources/js/home.js` (glue de la home, `@vite` solo ahí),
   `resources/js/list.js` (Alpine, versión pineada, global), `vite.config.js`
   (`input`)
-- `public/manifest.json`, `public/sw.js`
+- `public/manifest.json`, `public/sw.js`: la rama cache-first solo guarda el shell
+  y `/build/*` (`isCacheable`); subir `CACHE_VERSION` al cambiar el shell, porque
+  no revalida. `myShoppingLists` (localStorage) se valida con `isValidEntry` en
+  `home.js` y `list.js`: array de `{slug, name}` con `slug` `[A-Za-z0-9_-]+`.
 - `.github/workflows/ci.yml` (tests + Pint en push/PR a `main`),
   `.github/workflows/deploy.yml` (deploy a Hostinger por `rsync` sobre SSH;
   release publicado o `workflow_dispatch`); `.env.production.example`
@@ -70,8 +73,12 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   `api/*` (o que espera JSON) responde `404 {"message":"Not Found"}` uniforme —
   lista borrada, slug inexistente o ruta desconocida son indistinguibles (RF-4).
   También registra `App\Http\Middleware\Hsts` de forma global (`Strict-
-Transport-Security`, todas las respuestas), aparte del alias `noindex` que
-  solo aplica a `/l/{slug}`.
+Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
+  el slug viaja en la URL), aparte del alias `noindex` que solo aplica a
+  `/l/{slug}`. `config/cors.php` deja `allowed_origins` vacío a propósito: el
+  frontend es same-origin y no debe haber CORS comodín en `api/*`. Todo
+  `api/*` responde JSON aunque falte `Accept` (`shouldRenderJsonWhen`): sin
+  eso, un 422 sería un `302` a HTML.
 
 ## Reglas
 
@@ -93,7 +100,11 @@ Transport-Security`, todas las respuestas), aparte del alias `noindex` que
   sube por `rsync` sobre SSH; el servidor **nunca** hace `git pull` ni corre
   `composer`. Pasos y post-deploy en `docs/deploy.md`. Al tocar cualquier
   workflow, verifica de paso que sus `uses:` no quedaron atrás y bumpéalos en el
-  mismo commit.
+  mismo commit. Las actions van fijadas por SHA de commit con el tag en un
+  comentario (`@<sha> # v7.0.1`; `setup-php` apunta a un tag anotado: usa el
+  commit al que resuelve). Ambos workflows declaran `permissions: contents: read`.
+  `bootstrap/cache/` se sincroniza por rsync a propósito: el servidor no corre `composer`, así que no puede
+  regenerar `packages.php`/`services.php`.
 - No subas `.env`. No asumas colas ni schedulers sin verificar el plan de hosting.
 - No añadas WebSockets/Reverb ni autenticación sin cambiar antes la constitución.
 - **Vistas Blade sin `<script>`/`<style>` inline** (salvo `offline.blade.php`,

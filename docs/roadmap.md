@@ -38,6 +38,15 @@
   (`[1.2.1]`) y convenciones en `AGENTS.md` ("Lecciones de UI"). 148 Pest +
   37 Playwright + axe sin violaciones a 375 y 1280px.
 
+- **Endurecimiento tras auditoría de seguridad** — versión **1.2.2**
+  (`[1.2.2]` en `CHANGELOG.md`). Auditoría de código parcial en dos
+  pasadas sin hallazgos confirmados; se aplicó el hardening: `Referrer-Policy`,
+  CORS sin comodín, cookie de sesión segura, workflows con permisos mínimos y
+  actions por SHA, service worker con allowlist de caché y validación de
+  `localStorage`. Sin spec propia (sin RF nuevos). 153 Pest + 37 Playwright.
+  Pendiente a futuro: CSP (exige el build CSP de Alpine) y `trustProxies` si el
+  hosting antepone un proxy.
+
 ## Siguiente 🔜
 
 - Sin feature activa. La próxima se crea como `specs/003-<slug>/`.

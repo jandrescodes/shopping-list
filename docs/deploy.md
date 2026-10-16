@@ -118,8 +118,11 @@ creados. Queda:
     chmod -R ug+rwX "$D"/app/storage "$D"/app/bootstrap/cache
     ```
 
-    `storage/` y `bootstrap/cache/` quedan fuera del `rsync` para no pisarse en
-    cada deploy; hay que crearlos a mano esta vez.
+    `storage/` queda fuera del `rsync` para no pisarse en cada deploy; hay que
+    crearlo a mano esta vez. `bootstrap/cache/` **sí** se sincroniza (lleva los
+    `packages.php`/`services.php` generados en el runner, que el servidor no puede
+    regenerar sin `composer`) y `--delete` reemplaza los cachés de config/rutas,
+    que el paso post-deploy vuelve a generar.
 
 3. **Document root del sitio → `app/public`.** En hPanel: Sitios web → el
    dominio → Avanzado → _Cambiar carpeta raíz del sitio_ → `…/<dominio>/app/public`.
@@ -181,6 +184,8 @@ conteo. Sin `--before` aborta.
 
 - [ ] `https://<dominio>/` carga y muestra el formulario de crear lista.
 - [ ] `GET https://<dominio>/up` → 200 (health check de Laravel).
+- [ ] `GET https://<dominio>/.env`, `/composer.json` y `/artisan` → 403/404
+      (confirma que el document root es `app/public` y no la raíz de la app).
 - [ ] Crear una lista → el enlace devuelto arranca por `https://<dominio>/l/`.
 - [ ] Lighthouse (Chrome Android o DevTools) sobre `/l/{slug}`: **"installable"**.
 - [ ] Abrir la lista con conexión, luego cortar la red: el shell y la última

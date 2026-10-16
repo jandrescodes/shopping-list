@@ -32,6 +32,8 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
   completa y mantiene visible la última lectura conocida sin conexión.
 - **Mobile-first y responsive.** Diseñada primero para celular (targets
   táctiles de 44px, contraste AA) y adaptada a desktop con una card centrada.
+- **Endurecida.** Slug de 128 bits como única llave, sin CORS comodín,
+  `Referrer-Policy: no-referrer`, HSTS y límites de tasa por IP.
 - **Hosting compartido.** Sin colas, schedulers ni procesos persistentes:
   corre en un plan de hosting compartido estándar.
 

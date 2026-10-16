@@ -5,6 +5,54 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.2.2] - 2026-10-15
+
+### Seguridad
+
+Resultado de una auditoría de código (perfil parcial `quick`, dos pasadas, sin
+hallazgos confirmados); lo siguiente es endurecimiento.
+
+- **`Referrer-Policy: no-referrer`** en todas las respuestas: el slug viaja en
+  la URL y no debe salir como `Referer` si algún día se añade un enlace o
+  recurso externo.
+- **Sin CORS comodín en `api/*`.** `config/cors.php` deja `allowed_origins`
+  vacío: el frontend es same-origin y el default del framework permitía `*`.
+- **`SESSION_SECURE_COOKIE=true`** en `.env.production.example`.
+- **Workflows endurecidos.** `permissions: contents: read` en CI y deploy,
+  actions fijadas por SHA de commit (checkout 7.0.1, cache 6.1.0, setup-node
+  7.1.0, setup-php 2.40.0), caché de desarrollo separada del prefijo de
+  producción (`composer-dev-` / `composer-prod-`), `StrictHostKeyChecking=yes`
+  en el rsync y el SSH post-deploy y el fallo de `ssh-keyscan` ya no se
+  silencia.
+- **Menos superficie desplegada.** `AGENTS.md`, `CLAUDE.md`, `README.md` y
+  `CHANGELOG.md` quedan fuera del rsync; `laravel/tinker` pasa a `require-dev`.
+- **Service worker** (`CACHE_VERSION` `v2`): solo guarda en caché el shell y
+  `/build/*`; antes persistía cualquier GET same-origin con respuesta correcta.
+- **`localStorage`**: `myShoppingLists` se valida (array de entradas con `slug`
+  y `name` en texto) antes de usarse en la home y en la lista.
+
+### Cambiado
+
+- **API siempre en JSON.** Un error de validación en `api/*` sin cabecera
+  `Accept: application/json` respondía `302` a una página HTML; ahora responde
+  `422` con JSON. `POST /api/lists` añade `Location` apuntando a
+  `/api/lists/{slug}`.
+- `league/commonmark` 2.10.0 → 2.10.3 y `symfony/http-foundation` 7.4.18 →
+  7.4.21: cierran los tres avisos de `composer audit` (bypass de
+  `DisallowedRawHtml`, DoS cuadrático en la extensión de tablas y ReDoS en
+  `HeaderUtils::split()`). Solo parches; `composer audit` queda limpio.
+- Dependencias de front con versión exacta (`@tailwindcss/vite`, `axios`,
+  `concurrently`, `laravel-vite-plugin`, `tailwindcss`, `vite`), como indica
+  `AGENTS.md`; el lockfile resuelve las mismas versiones que antes.
+
+### Corregido
+
+- `docs/deploy.md` afirmaba que `bootstrap/cache/` quedaba fuera del rsync; en
+  realidad se sincroniza (lleva `packages.php`/`services.php` generados en el
+  runner) y el post-deploy regenera los cachés de config y rutas.
+- Checklist post-despliegue: `/.env`, `/composer.json` y `/artisan` deben
+  responder 403/404 (confirma que el document root es `app/public`).
+
 ## [1.2.1] - 2026-10-15
 
 ### Cambiado
@@ -164,6 +212,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
+[1.2.2]: https://github.com/jandrescodes/shopping-list/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/jandrescodes/shopping-list/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/jandrescodes/shopping-list/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/jandrescodes/shopping-list/compare/1.0.0...1.1.0
