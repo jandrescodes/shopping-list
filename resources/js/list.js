@@ -19,9 +19,21 @@ const MY_LISTS_KEY = 'myShoppingLists';
 const AUTHOR_KEY = 'myShoppingListAuthor';
 const MAX_LISTS = 20;
 
+function isValidEntry(entry) {
+    return (
+        entry !== null &&
+        typeof entry === 'object' &&
+        typeof entry.slug === 'string' &&
+        /^[A-Za-z0-9_-]+$/.test(entry.slug) &&
+        typeof entry.name === 'string'
+    );
+}
+
 function readMyLists() {
     try {
-        return JSON.parse(localStorage.getItem(MY_LISTS_KEY)) || [];
+        const parsed = JSON.parse(localStorage.getItem(MY_LISTS_KEY));
+
+        return Array.isArray(parsed) ? parsed.filter(isValidEntry) : [];
     } catch (e) {
         return [];
     }

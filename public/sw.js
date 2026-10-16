@@ -8,11 +8,13 @@
  *     · /api/*            → solo red, nunca cache (los datos siempre frescos).
  *     · navegación (HTML) → red primero; si falla, la copia en cache y si no
  *       existe, la página /offline (primer arranque sin red, RF-29).
- *     · estáticos         → cache primero, con relleno de red en segundo plano.
+ *     · estáticos         → cache primero; si no está, red. Solo se guardan el
+ *       shell y /build/*: cualquier otro GET same-origin queda sin cachear
+ *       (no se revalida: lo que cambia se renueva subiendo CACHE_VERSION).
  *
  * Sube CACHE_VERSION al cambiar el shell para forzar un precache limpio.
  */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `shopping-list-${CACHE_VERSION}`;
 
 const STATIC_SHELL = [
@@ -24,6 +26,12 @@ const STATIC_SHELL = [
     '/icons/icon-192.png',
     '/icons/icon-512.png',
 ];
+
+// Una allowlist evita persistir en el dispositivo respuestas personalizadas
+// (p. ej. un fetch futuro a una ruta con datos de lista).
+function isCacheable(pathname) {
+    return STATIC_SHELL.includes(pathname) || pathname.startsWith('/build/');
+}
 
 async function buildAssetUrls() {
     try {
@@ -96,7 +104,7 @@ self.addEventListener('fetch', (event) => {
             if (cached) return cached;
 
             const response = await fetch(request);
-            if (response.ok) cache.put(request, response.clone());
+            if (response.ok && isCacheable(url.pathname)) cache.put(request, response.clone());
             return response;
         })(),
     );
