@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\Hsts;
 use App\Http\Middleware\NoIndex;
+use App\Http\Middleware\ReferrerPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->append(Hsts::class);
+        $middleware->append(ReferrerPolicy::class);
     })
     ->booted(function (): void {
         // Per-IP request limits (constitution 5). Generous ceilings for
@@ -37,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
         RateLimiter::for('sync', fn (Request $request) => Limit::perMinute($relaxed ? 100000 : 60)->by($request->ip()));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Without an Accept header a validation failure would redirect to an
+        // HTML page; `api/*` always answers JSON.
+        $exceptions->shouldRenderJsonWhen(fn (Request $request) => $request->is('api/*') || $request->expectsJson());
+
         // A missing list — deleted or never created — and any unknown API
         // route answer with one identical generic 404, leaking no detail about
         // whether the list ever existed.

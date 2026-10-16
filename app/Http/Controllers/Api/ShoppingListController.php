@@ -25,7 +25,7 @@ class ShoppingListController extends Controller
             'slug' => $list->slug,
             'name' => $list->name,
             'url' => rtrim((string) config('app.url'), '/')."/l/{$list->slug}",
-        ], 201);
+        ], 201, ['Location' => url("/api/lists/{$list->slug}")]);
     }
 
     /**
