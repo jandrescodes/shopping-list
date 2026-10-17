@@ -276,3 +276,11 @@ Ninguna.
   hacerse (catálogo de unidades, conversión, validación numérica). El cálculo
   cantidad × precio unitario ya estaba fuera de alcance por RF-9 y ahí no se
   toca.
+
+## Cambios
+
+### CHG-1 — 2026-09-26 — Anotar y editar la cantidad de un ítem
+
+- Tipo: add
+- RF: RF-26, RF-27, RF-28
+- Motivo: la cantidad ya existía en el backend pero la interfaz no permitía escribirla ni corregirla.

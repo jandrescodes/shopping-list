@@ -505,3 +505,17 @@ Ninguna.
   con `slug` (RF-5/constitución 4/6), no consulta al servidor, funciona sin
   conexión (RF-26) y no añade dependencias (constitución 1). Cancelar la hoja
   (`AbortError`) no es error. Encaja con mobile-first (constitución 10).
+
+## Cambios
+
+### CHG-1 — 2026-09-03 — Volver al inicio desde una lista
+
+- Tipo: add
+- RF: RF-33
+- Motivo: la vista de lista no tenía navegación interna; solo se volvía con el botón "atrás" o editando la URL.
+
+### CHG-2 — 2026-09-03 — Compartir el enlace de una lista
+
+- Tipo: add
+- RF: RF-34
+- Motivo: copiar la URL a mano en el celular es incómodo.

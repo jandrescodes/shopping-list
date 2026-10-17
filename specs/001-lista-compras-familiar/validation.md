@@ -84,3 +84,16 @@ verde. Los tres puntos marcados ⏳ son verificaciones manuales que la propia sp
 reserva para el despliegue (Lighthouse, demo en dos celulares reales, fijar
 `APP_URL` al dominio); no son incumplimientos de la implementación. El
 procedimiento de despliegue queda en `docs/deploy.md`.
+
+## Archivos actualizados
+
+- `docs/roadmap.md` — feature movida a "Hecho ✅".
+- `docs/schema.md` — generado después con `/sdd:docs schema`.
+
+## Límites conocidos
+
+- Las acciones de escritura requieren conexión: sin red fallan con aviso, no hay cola offline.
+- Si dos personas editan lo mismo a la vez, gana la última escritura; no se fusionan cambios.
+- Los ítems eliminados no se pueden recuperar, y no hay historial ni estadísticas de compras.
+- La sincronización entre celulares es por consulta periódica (unos segundos), no instantánea.
+- Quien tenga el enlace de una lista puede verla y editarla: no hay cuentas ni permisos.

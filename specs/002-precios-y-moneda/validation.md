@@ -1,5 +1,7 @@
 # Validación — Spec 002
 
+**Fecha:** 2026-09-26
+
 ## Recorrido RF por RF
 
 | RF    | Resumen                                                    | Evidencia                                                                                                     | Veredicto |
@@ -69,6 +71,18 @@
 implementación satisface RF-1–RF-28 y los requisitos no funcionales cubiertos
 por código y pruebas. Solo queda ejecutar la comprobación operativa en dos
 celulares reales antes de declarar cerrada toda la checklist de la feature.
+
+## Archivos actualizados
+
+- `docs/roadmap.md` — feature movida a "Hecho ✅".
+- `docs/schema.md` — generado después con `/sdd:docs schema`.
+
+## Límites conocidos
+
+- Cada lista usa una sola moneda; no hay conversión ni tipo de cambio.
+- El total solo suma el precio de cada ítem pendiente; no multiplica por la cantidad.
+- La cantidad es texto libre: no hay unidades de medida ni validación numérica.
+- No hay presupuesto, historial de gastos ni exportación de totales.
 
 ## Notas
 
