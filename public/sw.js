@@ -14,7 +14,7 @@
  *
  * Sube CACHE_VERSION al cambiar el shell para forzar un precache limpio.
  */
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `shopping-list-${CACHE_VERSION}`;
 
 const STATIC_SHELL = [

@@ -32,6 +32,17 @@
             margin: 0 0 .5rem;
         }
 
+        a {
+            display: inline-block;
+            margin-top: 1.25rem;
+            padding: .6rem 1rem;
+            border-radius: .5rem;
+            background: #1d4ed8;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
         p {
             margin: 0;
             font-size: .95rem;
@@ -47,6 +58,9 @@
             No hay conexión a internet y esta lista todavía no se guardó en el
             dispositivo. Vuelve a intentarlo cuando recuperes la red.
         </p>
+        {{-- href vacío: recarga la URL pedida (el SW sirve esta página en su
+             lugar), sin JS ni build. --}}
+        <a href="">Reintentar</a>
     </main>
 </body>
 
