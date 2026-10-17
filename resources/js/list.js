@@ -11,6 +11,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json', Accept: 'application/
 // never queued for later, so the wording must not promise a retry.
 const OFFLINE_MESSAGE = 'Sin conexión. La acción no se guardó; inténtalo otra vez cuando vuelvas a tener red.';
 
+const throttledMessage = (seconds) => seconds > 0
+    ? `Demasiadas acciones seguidas. Espera ${seconds} s e inténtalo de nuevo.`
+    : 'Demasiadas acciones seguidas. Espera un momento e inténtalo de nuevo.';
+
 // Client-side memory. `myShoppingLists` is shared with the home page: an
 // array of { slug, name }, most-recently-opened first, capped at MAX_LISTS.
 // `myShoppingListAuthor` is the "who is adding" name proposed when creating
@@ -177,6 +181,10 @@ document.addEventListener('alpine:init', () => {
         // dropped connection for what it is (a fetch network failure has no
         // .status). Writes are never queued.
         writeError(e, fallback) {
+            if (e && e.status === 429) {
+                return throttledMessage(e.retryAfter);
+            }
+
             return e && e.status ? fallback : OFFLINE_MESSAGE;
         },
 
@@ -388,6 +396,7 @@ document.addEventListener('alpine:init', () => {
             if (!res.ok) {
                 const error = new Error('request failed');
                 error.status = res.status;
+                error.retryAfter = Number.parseInt(res.headers.get('Retry-After'), 10) || 0;
                 throw error;
             }
 

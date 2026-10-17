@@ -40,6 +40,13 @@ document.addEventListener('alpine:init', () => {
                     },
                     body: JSON.stringify({ name: this.name }),
                 });
+                if (res.status === 429) {
+                    const minutes = Math.ceil((Number.parseInt(res.headers.get('Retry-After'), 10) || 0) / 60);
+                    this.error = minutes > 0
+                        ? `Creaste demasiadas listas seguidas. Inténtalo de nuevo en ${minutes} min.`
+                        : 'Creaste demasiadas listas seguidas. Inténtalo de nuevo más tarde.';
+                    return;
+                }
                 if (!res.ok) {
                     this.error = 'No se pudo crear la lista. Revisa el nombre e inténtalo de nuevo.';
                     return;
