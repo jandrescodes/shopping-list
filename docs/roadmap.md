@@ -35,7 +35,7 @@
   de ítem rediseñadas, menú de opciones, formulario simplificado, un solo aviso
   de conexión, contraste y targets de 44px, foco de teclado y card en desktop.
   Sin spec propia (ajuste de interfaz, sin RF nuevos); detalle en `CHANGELOG.md`
-  (`[1.2.1]`) y convenciones en `AGENTS.md` ("Lecciones de UI"). 148 Pest +
+  (`[1.2.1]`) y convenciones en `docs/ui-guidelines.md` ("Lecciones de UI"). 148 Pest +
   37 Playwright + axe sin violaciones a 375 y 1280px.
 
 - **Endurecimiento tras auditoría de seguridad** — versión **1.2.2**
@@ -47,20 +47,50 @@
   Pendiente a futuro: CSP (exige el build CSP de Alpine) y `trustProxies` si el
   hosting antepone un proxy.
 
+- **Páginas de error, aviso de 429 y página offline** — versión **1.2.3**
+  (`[1.2.3]` en `CHANGELOG.md`). Vistas 404, 500 y 503 en español,
+  mensajes de 429 con `Retry-After` en `list.js` y `home.js`, y "Reintentar" en
+  `offline.blade.php` (`CACHE_VERSION` `v3`). Sin spec propia (ajuste de
+  interfaz, sin RF nuevos). Documentación derivada con `/sdd:docs`:
+  `docs/schema.md` y `docs/app-flow.md`; constitución, specs y `AGENTS.md`
+  alineados con las plantillas SDD. 158 Pest + 39 Playwright.
+
 ## Siguiente 🔜
 
 - Sin feature activa. La próxima se crea como `specs/003-<slug>/`.
 
 ## Backlog / ideas 💡
 
-- **Categorías de ítems** — agrupar por lácteos, limpieza, etc. Descartado para
-  v1 por no ser un requisito claro.
-- **Historial de compras pasadas** — ver qué se compró en semanas anteriores.
-- **Notificaciones push** — avisar cuando alguien agrega un ítem, sin depender
-  del polling.
-- **Modo oscuro**.
-- **Migración a WebSockets/Reverb** — si en el futuro se cambia de hosting
-  compartido a un VPS.
+Por orden de valor. Todas caben en el hosting compartido sin colas ni procesos
+persistentes.
+
+- **`composer audit` y `npm audit` en el CI** — un paso por job; habría
+  detectado antes los advisories de `league/commonmark` y
+  `symfony/http-foundation`. No necesita spec.
+- **Monitor externo sobre `/up`** — aviso gratuito si Hostinger cae. Sin código.
+- **Reordenar ítems** — columna `position` en `items` y arrastre con handle
+  dedicado (no choca con el scroll en touch), con botones subir/bajar como
+  alternativa accesible. Cubre el caso de agrupar por pasillo sin categorías.
+- **Autocompletado de ítems frecuentes** — sugerencias desde el historial de
+  la propia lista, sin catálogo global.
+- **Presupuesto opcional por lista** — tope junto al total ya calculado
+  (precio + moneda) con aviso al superarlo.
+- **Compartir con Web Share API y QR** — `navigator.share` además de copiar el
+  enlace; QR para pasar la lista a otro celular en casa.
+- **Duplicar lista** — copia los ítems (sin marcar) a una lista nueva con otro
+  `slug`, como plantilla de la compra semanal. Respeta el tope de
+  `lists-create`.
+- **Reiniciar compras** — desmarcar de una vez todos los ítems comprados para
+  repetir la compra semanal sin borrar y recrear. Un `PATCH` y un botón en el
+  menú de opciones.
+- **Limpieza de listas abandonadas** — comando `lists:purge-inactive` (p. ej.
+  12 meses sin cambios), ejecutado con el cron de hPanel. Verificar antes que
+  el plan de hosting permite cron.
+- **Modo oscuro** — mejora estética, baja prioridad.
+
+Descartado a propósito (no recomendado para una lista familiar en hosting
+compartido): categorías de ítems, historial de compras, notificaciones push y
+migración a WebSockets/Reverb (chocan con la constitución y con el hosting).
 
 > Cada feature nueva se crea como `specs/NNN-<slug>/` con `spec.md`, `plan.md` y
 > `tasks.md` antes de tocar código, y no se cierra hasta que `/sdd:validate`

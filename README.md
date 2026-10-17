@@ -107,7 +107,7 @@ resources/views/             Vistas Blade
 public/manifest.json         Manifest PWA
 public/sw.js                 Service worker
 lang/es/                     Textos en español
-docs/                        Constitución, roadmap y despliegue
+docs/                        Constitución, roadmap, despliegue, esquema de datos, flujo de la app y guía de UI
 specs/                       Especificaciones por feature (SDD)
 .github/workflows/           CI (tests + Pint) y deploy a Hostinger
 CHANGELOG.md                 Historial de versiones
@@ -120,6 +120,9 @@ CHANGELOG.md                 Historial de versiones
 - [`docs/constitution.md`](docs/constitution.md) — principios innegociables.
 - [`docs/roadmap.md`](docs/roadmap.md) — estado y backlog.
 - [`docs/deploy.md`](docs/deploy.md) — despliegue en hosting compartido.
+- [`docs/schema.md`](docs/schema.md) — estructuras de datos persistentes.
+- [`docs/app-flow.md`](docs/app-flow.md) — recorridos, estados de error y pantallas.
+- [`docs/ui-guidelines.md`](docs/ui-guidelines.md) — convenciones de interfaz y orden de módulos de Alpine.
 - [`specs/`](specs/) — especificaciones por feature (`spec.md`, `plan.md`,
   `tasks.md`, `validation.md`).
 

@@ -5,6 +5,39 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.2.3] - 2026-10-17
+
+### Añadido
+
+- **Páginas de error en español** (`resources/views/errors/`): 404,
+  500 y 503. El 404 y el 503 usan el layout de la app; el
+  500 es standalone (sin `@vite`) para verse aunque el build falle. El 404 es
+  idéntico exista o no la lista; el 500 y el 503 ofrecen "Reintentar". Las respuestas de
+  `api/*` siguen siendo JSON.
+- **Documentación derivada** (`/sdd:docs`): `docs/schema.md` (estructuras de
+  datos) y `docs/app-flow.md` (recorridos, caminos alternativos, estados de
+  error y pantallas). `deliverables/trd.md` se genera pero no se versiona
+  (`deliverables/` está en `.gitignore`).
+- `docs/ui-guidelines.md`: convenciones de interfaz y orden de módulos de
+  Alpine, movidas desde `AGENTS.md`, que ahora deja solo la regla y el enlace.
+
+### Cambiado
+
+- **Aviso de 429 en el cliente.** Una escritura limitada por el servidor dice
+  "Demasiadas acciones seguidas. Espera N s e inténtalo de nuevo." (N sale de
+  `Retry-After`) en vez del fallo genérico; crear listas desde el home dice
+  cuántos minutos esperar. La sincronización automática sigue reintentando en
+  silencio.
+- **Página offline** con un enlace "Reintentar" que recarga la URL pedida, sin
+  JavaScript. Service worker `CACHE_VERSION` `v2` → `v3` para renovar el
+  precache de `/offline`.
+- Documentación SDD alineada con las plantillas del toolkit: constitución
+  condensada (misma numeración), `AGENTS.md` con `Docs profile: lite` y el
+  párrafo de `/sdd:docs`, y las specs 001 y 002 con `## Cambios` (`CHG-n`),
+  fecha de validación y secciones `Archivos actualizados` y `Límites conocidos`.
+- Backlog del `roadmap.md` reordenado (reordenar ítems, autocompletado,
+  presupuesto, compartir con QR, duplicar lista).
+
 ## [1.2.2] - 2026-10-15
 
 ### Seguridad
@@ -212,6 +245,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
+[1.2.3]: https://github.com/jandrescodes/shopping-list/compare/1.2.2...1.2.3
 [1.2.2]: https://github.com/jandrescodes/shopping-list/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/jandrescodes/shopping-list/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/jandrescodes/shopping-list/compare/1.1.0...1.2.0
