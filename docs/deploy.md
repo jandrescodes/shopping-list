@@ -20,14 +20,14 @@ Cuenta de hosting compartida `<cuenta>` (misma que el resto de sitios: el **SSH
 es por cuenta**, así que sirven la misma llave/host/usuario/puerto que ya usás
 para los otros proyectos — solo cambia la ruta).
 
-| Recurso                 | Valor                                                            |
-| ----------------------- | --------------------------------------------------------------- |
-| Dominio                 | subdominio `*.hostingersite.com` creado para el proyecto        |
-| `HOSTINGER_APP_PATH`    | `/home/<cuenta>/domains/<dominio>/app`                          |
-| Document root del sitio | `app/public` (se fija en hPanel, ver abajo)                     |
-| PHP                     | 8.2 (fijado; pdo_mysql, mbstring, bcmath, intl, gd OK)          |
-| BD / usuario            | `<cuenta>_shopping_list` / `<cuenta>_shopping`                  |
-| Host / puerto BD        | `localhost` / `3306`                                            |
+| Recurso                 | Valor                                                    |
+| ----------------------- | -------------------------------------------------------- |
+| Dominio                 | subdominio `*.hostingersite.com` creado para el proyecto |
+| `HOSTINGER_APP_PATH`    | `/home/<cuenta>/domains/<dominio>/app`                   |
+| Document root del sitio | `app/public` (se fija en hPanel, ver abajo)              |
+| PHP                     | 8.2 (fijado; pdo_mysql, mbstring, bcmath, intl, gd OK)   |
+| BD / usuario            | `<cuenta>_shopping_list` / `<cuenta>_shopping`           |
+| Host / puerto BD        | `localhost` / `3306`                                     |
 
 La contraseña de la BD se generó al crearla y va **solo** en el `.env` del
 servidor (paso 4). No se versiona ni se guarda como secreto de GitHub.
@@ -71,14 +71,14 @@ El job `deploy` declara `environment: production`, así que los secretos van en
 **Settings → Environments → `production` → Environment secrets** (no en los
 secretos generales del repo). Crea el entorno `production` si no existe.
 
-| Secreto              | Contenido                                                             | Obligatorio |
-| -------------------- | -------------------------------------------------------------------- | ----------- |
-| `HOSTINGER_SSH_KEY`  | clave **privada** OpenSSH (la misma de los otros sitios de la cuenta, o una nueva — ver abajo) | sí |
-| `HOSTINGER_SSH_HOST` | host SSH de la cuenta de hosting (el de tus otros deploys)           | sí          |
-| `HOSTINGER_SSH_USER` | usuario SSH de la cuenta (`uXXXXXXXXX`)                              | sí          |
-| `HOSTINGER_APP_PATH` | `/home/<cuenta>/domains/<dominio>/app`                              | sí          |
-| `HOSTINGER_SSH_PORT` | normalmente `65002` (por defecto si no se define)                   | no          |
-| `HOSTINGER_DOMAIN`   | el subdominio del proyecto (para el health check)                   | no          |
+| Secreto              | Contenido                                                                                      | Obligatorio |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ----------- |
+| `HOSTINGER_SSH_KEY`  | clave **privada** OpenSSH (la misma de los otros sitios de la cuenta, o una nueva — ver abajo) | sí          |
+| `HOSTINGER_SSH_HOST` | host SSH de la cuenta de hosting (el de tus otros deploys)                                     | sí          |
+| `HOSTINGER_SSH_USER` | usuario SSH de la cuenta (`uXXXXXXXXX`)                                                        | sí          |
+| `HOSTINGER_APP_PATH` | `/home/<cuenta>/domains/<dominio>/app`                                                         | sí          |
+| `HOSTINGER_SSH_PORT` | normalmente `65002` (por defecto si no se define)                                              | no          |
+| `HOSTINGER_DOMAIN`   | el subdominio del proyecto (para el health check)                                              | no          |
 
 Sin alguno de los cuatro obligatorios el job `deploy` **falla en el primer paso**
 con un mensaje que dice cuál falta.
@@ -196,3 +196,9 @@ conteo. Sin `--before` aborta.
       verlo en el otro en ≤ 5 s.
 - [ ] `GET /robots.txt` contiene `Disallow: /l/`; `GET /l/{slug}` responde con
       `X-Robots-Tag: noindex, nofollow`.
+
+## Monitoreo externo
+
+Un monitor gratuito (p. ej. UptimeRobot, intervalo de 5 min) sobre
+`GET https://<dominio>/up` espera 200 y avisa por correo si Hostinger cae. No
+requiere código ni secretos en el repo.
