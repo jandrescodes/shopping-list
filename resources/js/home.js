@@ -1,3 +1,5 @@
+import { throttledListsMessage } from './throttle.js';
+
 // The list-page memory (writing entries, name refresh, 404 pruning, 20-entry
 // cap) lives in resources/js/list.js; both sides share the `myShoppingLists`
 // localStorage key.
@@ -41,10 +43,7 @@ document.addEventListener('alpine:init', () => {
                     body: JSON.stringify({ name: this.name }),
                 });
                 if (res.status === 429) {
-                    const minutes = Math.ceil((Number.parseInt(res.headers.get('Retry-After'), 10) || 0) / 60);
-                    this.error = minutes > 0
-                        ? `Creaste demasiadas listas seguidas. Inténtalo de nuevo en ${minutes} min.`
-                        : 'Creaste demasiadas listas seguidas. Inténtalo de nuevo más tarde.';
+                    this.error = throttledListsMessage(Number.parseInt(res.headers.get('Retry-After'), 10));
                     return;
                 }
                 if (!res.ok) {
