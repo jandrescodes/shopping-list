@@ -39,7 +39,11 @@ componentes).
   e2e debe abrirlo antes (`click('#list-menu-button')`). Una acción del menú
   mueve el foco a propósito (`$nextTick(() => $refs.x.focus())`) y lo devuelve
   al cancelar o guardar; si no, cae al `<body>`. Un panel `role="alertdialog"`
-  enfoca su botón seguro (Cancelar) al abrirse.
+  enfoca su botón seguro (Cancelar) al abrirse. Orden del menú: Renombrar,
+  Moneda, Copiar como texto, Duplicar lista, Reiniciar compras (solo con
+  ítems comprados, `x-show="hasPurchased"`) y Eliminar lista; los avisos de
+  esas acciones llevan su propio `id` y fondo (`#export-notice`,
+  `#reset-undo`), ver `AGENTS.md`.
 - **Un solo aviso de conexión.** `showOfflineNotice` (`list.js`) oculta el
   aviso ámbar mientras el error visible es el de escritura sin red, que ya
   dice "Sin conexión"; así no se apilan dos avisos casi iguales en mobile.

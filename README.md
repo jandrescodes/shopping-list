@@ -26,6 +26,8 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
   (última escritura gana, por campo).
 - **Precios y moneda.** Cada ítem puede tener un precio opcional; cada lista
   define su moneda y muestra el total pendiente con formato decimal preciso.
+- **Compra semanal.** Reiniciar las compras (con deshacer), duplicar una lista
+  como plantilla y copiarla como texto plano para pegarla en un mensaje.
 - **Cantidad editable.** La cantidad se puede indicar al agregar un ítem o
   corregir después desde la lista.
 - **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla
@@ -102,14 +104,15 @@ app/Models/                  ShoppingList, Item
 routes/api.php               Endpoints de la API
 resources/js/app.js           Bootstrap global + registro del service worker
 resources/js/home.js          Glue de la home (crear lista, "mis listas")
-resources/js/list.js          Cliente Alpine (edición + polling)
+resources/js/list.js          Cliente Alpine (edición, polling, reiniciar, duplicar, copiar como texto)
+resources/js/throttle.js      Texto compartido del 429 al crear listas
 resources/views/             Vistas Blade
 public/manifest.json         Manifest PWA
 public/sw.js                 Service worker
 lang/es/                     Textos en español
 docs/                        Constitución, roadmap, despliegue, esquema de datos, flujo de la app y guía de UI
 specs/                       Especificaciones por feature (SDD)
-.github/workflows/           CI (tests + Pint) y deploy a Hostinger
+.github/workflows/           CI (tests, Pint y audit) y deploy a Hostinger
 CHANGELOG.md                 Historial de versiones
 ```
 

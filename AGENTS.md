@@ -57,11 +57,16 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 
 - `app/Models/ShoppingList.php`, `app/Models/Item.php`
 - `app/Http/Controllers/Api/ShoppingListController.php`, `.../ItemController.php`
-- `routes/api.php`
+- `routes/api.php`: además del CRUD, `POST /lists/{list}/duplicate`
+  (`throttle:lists-create`, comparte cupo con crear lista) y, bajo
+  `throttle:writes`, `items/reset-purchased` y `items/restore-purchased`
+  (reiniciar compras y su deshacer: una petición cada uno, el servidor filtra
+  por el estado de la BD).
 - `resources/js/app.js` (bootstrap + registro del service worker, global),
   `resources/js/home.js` (glue de la home, `@vite` solo ahí),
-  `resources/js/list.js` (Alpine, versión pineada, global), `vite.config.js`
-  (`input`)
+  `resources/js/list.js` (Alpine, versión pineada, global),
+  `resources/js/throttle.js` (texto del 429 de listas en minutos, lo importan
+  `home.js` y `list.js`; no es entrada de Vite), `vite.config.js` (`input`)
 - `public/manifest.json`, `public/sw.js`: la rama cache-first solo guarda el shell
   y `/build/*` (`isCacheable`); subir `CACHE_VERSION` al cambiar el shell, porque
   no revalida. `myShoppingLists` (localStorage) se valida con `isValidEntry` en
@@ -72,7 +77,7 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   build falle. `offline.blade.php` queda aparte (standalone, ver Reglas) y su
   cambio exige subir `CACHE_VERSION` de `sw.js`. Un 429 de escritura lo
   traduce `writeError` en `list.js` (usa `Retry-After`).
-- `.github/workflows/ci.yml` (tests + Pint en push/PR a `main`),
+- `.github/workflows/ci.yml` (tests, Pint y audit de dependencias en push/PR a `main`),
   `.github/workflows/deploy.yml` (deploy a Hostinger por `rsync` sobre SSH;
   release publicado o `workflow_dispatch`); `.env.production.example`
 - `bootstrap/app.php`: render de excepciones. Todo `NotFoundHttpException` en
@@ -127,7 +132,13 @@ Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
   (`.bg-amber-50` offline, `.bg-green-50` copiado, `.bg-gray-100` URL en
   claro), así que **un elemento nuevo no debe reutilizar esas clases**. Cada
   componente nuevo lleva su propio `id` (p. ej. `#currency-chip`) o una
-  clase semántica, y se localiza con eso. Rompido en real: el chip de moneda
+  clase semántica, y se localiza con eso. Fondos ya tomados por avisos
+  propios: `bg-sky-50` (`#reset-undo`, reinicio de compras) y `bg-teal-50`
+  (`#export-notice`, lista copiada como texto).
+- **Una sola ranura de deshacer** en `list.js`: el borrado de ítem
+  (`pendingUndo`) y el reinicio de compras (`resetUndo`) comparten
+  `undoTimer` y se limpian mutuamente; el último aviso reemplaza al anterior,
+  para que "Deshacer" siempre signifique lo último que se hizo. Rompido en real: el chip de moneda
   se estilizó con `bg-gray-100` y `list-share.spec.js:70` falló con
   "strict mode violation: resolved to 2 elements".
 

@@ -55,19 +55,29 @@
   `docs/schema.md` y `docs/app-flow.md`; constitución, specs y `AGENTS.md`
   alineados con las plantillas SDD. 158 Pest + 39 Playwright.
 
+- **Audit en el CI y monitor sobre `/up`** — job `audit` en `ci.yml`
+  (`composer audit --locked` y `npm audit --omit=dev`; el audit completo de npm
+  falla hoy por advisories en dependencias de desarrollo: `concurrently` y
+  `follow-redirects`) y sección "Monitoreo externo" en `docs/deploy.md`. Sin
+  spec ni release propio. Pendiente manual: dar de alta el monitor.
+
+- **Compra semanal: reiniciar, duplicar y exportar como texto** — feature
+  completa (T0-T18 + cierre), versión **1.3.0** (2026-10-23). Reiniciar compras
+  con deshacer de 5 s, duplicar la lista como plantilla (ítems sin marcar,
+  precios y moneda) y copiar la lista como texto plano. Validada RF por RF en
+  `specs/003-compra-semanal/validation.md` (veredicto: spec cumplida; 212 Pest,
+  58 Playwright y `pint --test` en verde, axe sin violaciones).
+  → `specs/003-compra-semanal/`
+
 ## Siguiente 🔜
 
-- Sin feature activa. La próxima se crea como `specs/003-<slug>/`.
+_Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
 
 ## Backlog / ideas 💡
 
 Por orden de valor. Todas caben en el hosting compartido sin colas ni procesos
 persistentes.
 
-- **`composer audit` y `npm audit` en el CI** — un paso por job; habría
-  detectado antes los advisories de `league/commonmark` y
-  `symfony/http-foundation`. No necesita spec.
-- **Monitor externo sobre `/up`** — aviso gratuito si Hostinger cae. Sin código.
 - **Reordenar ítems** — columna `position` en `items` y arrastre con handle
   dedicado (no choca con el scroll en touch), con botones subir/bajar como
   alternativa accesible. Cubre el caso de agrupar por pasillo sin categorías.
@@ -77,12 +87,6 @@ persistentes.
   (precio + moneda) con aviso al superarlo.
 - **Compartir con Web Share API y QR** — `navigator.share` además de copiar el
   enlace; QR para pasar la lista a otro celular en casa.
-- **Duplicar lista** — copia los ítems (sin marcar) a una lista nueva con otro
-  `slug`, como plantilla de la compra semanal. Respeta el tope de
-  `lists-create`.
-- **Reiniciar compras** — desmarcar de una vez todos los ítems comprados para
-  repetir la compra semanal sin borrar y recrear. Un `PATCH` y un botón en el
-  menú de opciones.
 - **Limpieza de listas abandonadas** — comando `lists:purge-inactive` (p. ej.
   12 meses sin cambios), ejecutado con el cron de hPanel. Verificar antes que
   el plan de hosting permite cron.

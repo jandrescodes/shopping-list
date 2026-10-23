@@ -5,6 +5,42 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.3.0] - 2026-10-23
+
+### Añadido
+
+- **Reiniciar compras.** Opción del menú de opciones que desmarca de una vez
+  todos los ítems comprados, sin tocar nombre, cantidad ni precio, y recalcula
+  el total pendiente. Aparece solo si hay ítems comprados. Un aviso con
+  "Deshacer" durante 5 s vuelve a marcar solo lo que sigue existiendo y
+  desmarcado, sin pisar cambios de otros dispositivos. El reinicio y su deshacer
+  son una petición cada uno (`POST /api/lists/{slug}/items/reset-purchased` y
+  `restore-purchased`, bajo el límite `writes`) y se propagan a los demás
+  dispositivos por la sincronización. El aviso de deshacer es una sola ranura
+  compartida con el borrado de ítems: el último reemplaza al anterior.
+- **Duplicar lista.** Opción del menú que crea "Copia de <nombre>" (máximo 60
+  caracteres) con la misma moneda y una copia sin marcar de cada ítem (nombre,
+  cantidad y precio, sin quién lo agregó ni los borrados), y lleva a la copia
+  (`POST /api/lists/{slug}/duplicate`). Es atómica y consume el cupo
+  `lists-create` de crear listas; si se excede, el aviso dice cuántos minutos
+  esperar.
+- **Copiar como texto.** Opción del menú que copia la lista al portapapeles
+  como texto plano (`- [ ] Leche (2) — 12,50`, pendientes primero, y
+  `Total pendiente: Bs 12,50` al final cuando hay precios). Los importes salen
+  del mismo formateador que la pantalla. Si el navegador niega el portapapeles,
+  el texto aparece en un campo seleccionado para copiarlo a mano.
+- **Audit en el CI.** Job `audit` con `composer audit --locked` y
+  `npm audit --omit=dev`.
+- **Monitoreo externo.** Sección en `docs/deploy.md` para vigilar `/up` desde
+  un servicio externo.
+
+### Cambiado
+
+- `resources/js/throttle.js`: el texto del 429 de creación de listas (en
+  minutos) se comparte entre la home y la vista de lista.
+- Service worker `CACHE_VERSION` `v3` → `v4` para renovar el shell con la home
+  recompilada.
+
 ## [1.2.3] - 2026-10-17
 
 ### Añadido
