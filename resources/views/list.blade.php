@@ -29,6 +29,27 @@
             Copia este enlace: <span x-text="shareUrl" class="break-all font-mono"></span>
         </p>
 
+        {{-- Copiar como texto: confirmación con fondo propio (teal) y, si el
+             navegador niega el portapapeles, el texto en un campo seleccionado. --}}
+        <p id="export-notice" x-show="exportNotice" x-cloak x-text="exportNotice" role="status"
+            class="mb-3 rounded-lg bg-teal-50 p-2 text-sm text-teal-900" style="display:none"></p>
+        <div x-show="exportFallback" x-cloak style="display:none" class="mb-3">
+            <label for="export-fallback" class="mb-1 block text-sm text-gray-700">Copia este texto:</label>
+            <textarea id="export-fallback" x-ref="exportFallback" x-model="exportFallback" readonly rows="6"
+                class="w-full rounded-lg border border-gray-300 p-2 font-mono text-sm"></textarea>
+        </div>
+
+        {{-- Reiniciar compras: aviso propio (sky) que comparte la ranura de
+             deshacer con el borrado de ítem; el último aviso reemplaza al anterior. --}}
+        <div id="reset-undo" x-show="resetUndo" x-cloak role="status" style="display:none"
+            class="mb-3 flex items-center justify-between gap-3 rounded-lg bg-sky-50 p-2 text-sm">
+            <span>Compras reiniciadas</span>
+            <button type="button" x-on:click="undoReset()"
+                class="relative shrink-0 font-semibold text-sky-800 underline before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] focus-visible:outline-2 focus-visible:outline-blue-500">
+                Deshacer
+            </button>
+        </div>
+
         {{-- Deshacer borrado de ítem: ventana de gracia de 5 s tras un delete
              confirmado por la API (sin UI optimista ni escrituras encoladas);
              "deshacer" recrea el ítem con el mismo contenido, no revierte el id. --}}
@@ -88,6 +109,18 @@
                             class="flex min-h-11 w-full items-center justify-between gap-2 px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
                             <span>Moneda</span>
                             <span id="currency-chip" class="font-semibold" x-text="currency">{{ $list->currency }}</span>
+                        </button>
+                        <button type="button" x-on:click="menuOpen = false; copyAsText()"
+                            class="flex min-h-11 w-full items-center px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
+                            Copiar como texto
+                        </button>
+                        <button type="button" x-on:click="menuOpen = false; duplicateList()"
+                            class="flex min-h-11 w-full items-center px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
+                            Duplicar lista
+                        </button>
+                        <button type="button" x-show="hasPurchased" x-on:click="menuOpen = false; resetPurchased()"
+                            class="flex min-h-11 w-full items-center px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
+                            Reiniciar compras
                         </button>
                         <button type="button"
                             x-on:click="menuOpen = false; confirmingDelete = true; $nextTick(() => $refs.cancelDelete.focus())"

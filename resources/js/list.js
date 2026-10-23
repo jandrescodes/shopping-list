@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import { throttledListsMessage } from './throttle.js';
 
 // Shopping list view logic (Alpine component). Reactive rendering uses x-text
 // for every piece of user content (never x-html), and add / edit / mark /
@@ -148,7 +149,11 @@ document.addEventListener('alpine:init', () => {
         offline: false,
         pendingUndo: null,
         undoTimer: null,
+        resetUndo: null,
         shareNoticeTimer: null,
+        exportNotice: '',
+        exportFallback: '',
+        exportNoticeTimer: null,
 
         init() {
             this.slug = this.$el.dataset.slug;
@@ -234,6 +239,49 @@ document.addEventListener('alpine:init', () => {
                 this.shareNoticeTimer = setTimeout(() => { this.shareNotice = ''; }, 5000);
             } catch (e) {
                 this.shareUrl = url; // last resort: let them select and copy it
+            }
+        },
+
+        // Plain-text copy of the list, in the order the view shows it. Prices
+        // go bare (the symbol only rides on the total) and use the same
+        // formatter as the screen so both always agree.
+        exportText() {
+            const oneLine = (value) => String(value).replace(/\s*[\r\n]+\s*/g, ' ');
+            const lines = [oneLine(this.listName)];
+
+            for (const item of orderItems(this.items)) {
+                let line = `- [${item.is_purchased ? 'x' : ' '}] ${oneLine(item.name)}`;
+                if (item.quantity != null && item.quantity !== '') {
+                    line += ` (${oneLine(item.quantity)})`;
+                }
+                if (item.price != null) {
+                    line += ` — ${this.formatPrice(item.price)}`;
+                }
+                lines.push(line);
+            }
+
+            if (this.hasPendingPrice) {
+                lines.push(`Total pendiente: ${this.currency} ${this.formattedPendingTotal}`);
+            }
+
+            return lines.join('\n');
+        },
+
+        // Clipboard first; when the browser refuses (or has none), show the
+        // text in a readonly field, already selected, to copy by hand.
+        async copyAsText() {
+            const text = this.exportText();
+            clearTimeout(this.exportNoticeTimer);
+            this.exportNotice = '';
+            this.exportFallback = '';
+
+            try {
+                await navigator.clipboard.writeText(text);
+                this.exportNotice = 'Lista copiada. Pégala donde quieras compartirla.';
+                this.exportNoticeTimer = setTimeout(() => { this.exportNotice = ''; }, 5000);
+            } catch (e) {
+                this.exportFallback = text;
+                this.$nextTick(() => this.$refs.exportFallback?.select());
             }
         },
 
@@ -661,6 +709,7 @@ document.addEventListener('alpine:init', () => {
         // same name/quantity/added_by/purchased state/price. 5 s grace window.
         offerUndo(item) {
             clearTimeout(this.undoTimer);
+            this.resetUndo = null;
             this.pendingUndo = {
                 name: item.name,
                 quantity: item.quantity,
@@ -772,6 +821,77 @@ document.addEventListener('alpine:init', () => {
                 window.location.assign('/');
             } catch (e) {
                 this.error = this.writeError(e, 'No se pudo eliminar la lista.');
+            }
+        },
+
+        // Creating a list has its own hourly quota, so a 429 here speaks in
+        // minutes like the home does, not in the seconds of item writes.
+        async duplicateList() {
+            try {
+                const data = await this.request(`/api/lists/${this.slug}/duplicate`, { method: 'POST' });
+                window.location.assign(`/l/${data.slug}`);
+            } catch (e) {
+                this.error = e && e.status === 429
+                    ? throttledListsMessage(e.retryAfter)
+                    : this.writeError(e, 'No se pudo duplicar la lista.');
+            }
+        },
+
+        // One undo slot shared with item deletion: the newest notice replaces
+        // the previous one, so "Deshacer" always means the last thing done.
+        // The server answers with the ids it unmarked; those are what undo
+        // would send back.
+        async resetPurchased() {
+            try {
+                const data = await this.request(`/api/lists/${this.slug}/items/reset-purchased`, {
+                    method: 'POST',
+                });
+                const reset = new Set(data.reset_ids);
+                this.items.forEach((item) => {
+                    if (reset.has(item.id)) {
+                        item.is_purchased = false;
+                    }
+                });
+                this.error = '';
+
+                clearTimeout(this.undoTimer);
+                this.pendingUndo = null;
+                if (data.reset_ids.length > 0) {
+                    this.resetUndo = { ids: data.reset_ids };
+                    this.undoTimer = setTimeout(() => { this.resetUndo = null; }, 5000);
+                }
+            } catch (e) {
+                this.error = this.writeError(e, 'No se pudo reiniciar las compras.');
+            }
+        },
+
+        // Only the ids the server confirms come back as purchased: an item
+        // another device deleted or re-marked meanwhile is left as it is, and
+        // polling brings whatever else changed.
+        async undoReset() {
+            const snapshot = this.resetUndo;
+
+            if (!snapshot) {
+                return;
+            }
+
+            clearTimeout(this.undoTimer);
+            this.resetUndo = null;
+
+            try {
+                const data = await this.request(`/api/lists/${this.slug}/items/restore-purchased`, {
+                    method: 'POST',
+                    body: JSON.stringify({ ids: snapshot.ids }),
+                });
+                const restored = new Set(data.restored_ids);
+                this.items.forEach((item) => {
+                    if (restored.has(item.id)) {
+                        item.is_purchased = true;
+                    }
+                });
+                this.error = '';
+            } catch (e) {
+                this.error = this.writeError(e, 'No se pudo deshacer el reinicio.');
             }
         },
 
