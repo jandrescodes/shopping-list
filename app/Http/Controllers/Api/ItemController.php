@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RestorePurchasedRequest;
 use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\UpdateItemRequest;
 use App\Http\Resources\ItemResource;
@@ -84,6 +85,43 @@ class ItemController extends Controller
         $purged = ListVersion::write($list, fn (ShoppingList $locked) => $locked->purgePurchasedItems());
 
         return response()->json(['deleted_ids' => $purged->pluck('id')->all()]);
+    }
+
+    /**
+     * Unmark every item that is purchased in the database at the moment this
+     * runs, in a single pass through the locked versioned-write helper, and
+     * return their ids so the client can offer an undo. With nothing purchased
+     * it changes nothing and leaves the list version untouched.
+     */
+    public function resetPurchased(ShoppingList $list): JsonResponse
+    {
+        if (! $list->hasPurchasedItems()) {
+            return response()->json(['reset_ids' => []]);
+        }
+
+        $reset = ListVersion::write($list, fn (ShoppingList $locked) => $locked->resetPurchasedItems());
+
+        return response()->json(['reset_ids' => $reset->pluck('id')->all()]);
+    }
+
+    /**
+     * Undo of a reset: mark as purchased again the given items that, in the
+     * database at the moment this runs, are still active and unmarked, so a
+     * change made by another device in between is never overwritten. Ids that
+     * match nothing are ignored; with nothing to restore the list version is
+     * left untouched.
+     */
+    public function restorePurchased(RestorePurchasedRequest $request, ShoppingList $list): JsonResponse
+    {
+        $ids = $request->validated('ids');
+
+        if (! $list->hasRestorableItems($ids)) {
+            return response()->json(['restored_ids' => []]);
+        }
+
+        $restored = ListVersion::write($list, fn (ShoppingList $locked) => $locked->restorePurchasedItems($ids));
+
+        return response()->json(['restored_ids' => $restored->pluck('id')->all()]);
     }
 
     /**

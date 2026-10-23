@@ -4,11 +4,11 @@ use App\Models\Item;
 use App\Models\ShoppingList;
 use Illuminate\Support\Facades\Route;
 
-it('exposes exactly the nine contract routes, none behind auth', function () {
+it('exposes exactly the twelve contract routes, none behind auth', function () {
     $apiRoutes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($route) => str_starts_with($route->uri(), 'api/'));
 
-    expect($apiRoutes)->toHaveCount(9);
+    expect($apiRoutes)->toHaveCount(12);
 
     $apiRoutes->each(function ($route) {
         expect($route->gatherMiddleware())->not->toContain('auth')

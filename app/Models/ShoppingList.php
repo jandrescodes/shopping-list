@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ShoppingList extends Model
 {
@@ -104,6 +105,72 @@ class ShoppingList extends Model
         $purchased->each->delete();
 
         return $purchased;
+    }
+
+    /**
+     * Unmarks every active purchased item, reading the database state at the
+     * moment it runs, and returns the items it changed.
+     *
+     * @return Collection<int, Item>
+     */
+    public function resetPurchasedItems(): Collection
+    {
+        $purchased = $this->items()->where('is_purchased', true)->get();
+        $purchased->each->update(['is_purchased' => false]);
+
+        return $purchased;
+    }
+
+    /**
+     * Whether any of the given ids is an active, unmarked item of this list.
+     *
+     * @param  array<int, int>  $ids
+     */
+    public function hasRestorableItems(array $ids): bool
+    {
+        return $this->items()->whereIn('id', $ids)->where('is_purchased', false)->exists();
+    }
+
+    /**
+     * Marks as purchased the given items that are, in the database at the
+     * moment it runs, active items of this list still unmarked; any other id
+     * is ignored. Returns the items it changed.
+     *
+     * @param  array<int, int>  $ids
+     * @return Collection<int, Item>
+     */
+    public function restorePurchasedItems(array $ids): Collection
+    {
+        $restorable = $this->items()->whereIn('id', $ids)->where('is_purchased', false)->get();
+        $restorable->each->update(['is_purchased' => true]);
+
+        return $restorable;
+    }
+
+    /**
+     * Creates a new list named "Copia de <name>" (cut to the 60-character name
+     * limit) with this list's currency, plus an unmarked copy of every active
+     * item's name, quantity and price in creation order. Who added each item is
+     * not carried over, and deleted items stay behind. All or nothing.
+     */
+    public function duplicate(): self
+    {
+        return DB::transaction(function () {
+            // Fresh from the database: the current name and currency win over
+            // whatever this instance was loaded or created with.
+            $source = $this->fresh();
+
+            $copy = static::create([
+                'name' => rtrim(mb_substr('Copia de '.$source->name, 0, 60)),
+                'currency' => $source->currency,
+            ]);
+
+            $source->items()->orderBy('created_at')->orderBy('id')->get()->each(
+                fn (Item $item) => $copy->items()->create($item->only(['name', 'quantity', 'price']))
+            );
+
+            return $copy;
+        });
     }
 
     /**

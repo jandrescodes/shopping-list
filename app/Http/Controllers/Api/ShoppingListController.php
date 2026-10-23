@@ -19,13 +19,16 @@ class ShoppingListController extends Controller
      */
     public function store(StoreListRequest $request): JsonResponse
     {
-        $list = ShoppingList::create($request->validated());
+        return $this->created(ShoppingList::create($request->validated()));
+    }
 
-        return response()->json([
-            'slug' => $list->slug,
-            'name' => $list->name,
-            'url' => rtrim((string) config('app.url'), '/')."/l/{$list->slug}",
-        ], 201, ['Location' => url("/api/lists/{$list->slug}")]);
+    /**
+     * Copy a list (name, currency and unmarked items) into a new list with its
+     * own slug. It spends the same `lists-create` allowance as creating one.
+     */
+    public function duplicate(ShoppingList $list): JsonResponse
+    {
+        return $this->created($list->duplicate());
     }
 
     /**
@@ -38,6 +41,15 @@ class ShoppingListController extends Controller
             ShoppingListResource::make($list)->resolve(),
             ['items' => ItemResource::collection($list->activeItemsOrdered())->resolve()],
         ));
+    }
+
+    private function created(ShoppingList $list): JsonResponse
+    {
+        return response()->json([
+            'slug' => $list->slug,
+            'name' => $list->name,
+            'url' => rtrim((string) config('app.url'), '/')."/l/{$list->slug}",
+        ], 201, ['Location' => url("/api/lists/{$list->slug}")]);
     }
 
     /**

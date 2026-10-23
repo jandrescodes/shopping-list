@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ShoppingListController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/lists', [ShoppingListController::class, 'store'])->middleware('throttle:lists-create');
+Route::post('/lists/{list}/duplicate', [ShoppingListController::class, 'duplicate'])->middleware('throttle:lists-create');
 Route::get('/lists/{list}', [ShoppingListController::class, 'show']);
 Route::patch('/lists/{list}', [ShoppingListController::class, 'update'])->middleware('throttle:writes');
 Route::delete('/lists/{list}', [ShoppingListController::class, 'destroy'])->middleware('throttle:writes');
@@ -31,6 +32,8 @@ Route::prefix('/lists/{list}/items')->scopeBindings()->group(function () {
     Route::middleware('throttle:writes')->group(function () {
         Route::post('/', [ItemController::class, 'store']);
         Route::post('/purge-purchased', [ItemController::class, 'purgePurchased']);
+        Route::post('/reset-purchased', [ItemController::class, 'resetPurchased']);
+        Route::post('/restore-purchased', [ItemController::class, 'restorePurchased']);
         Route::patch('/{item}', [ItemController::class, 'update']);
         Route::delete('/{item}', [ItemController::class, 'destroy']);
     });
