@@ -15,10 +15,10 @@ it('precaches the offline page and the compiled asset manifest', function () {
         ->toContain("url.pathname.startsWith('/api/')");
 });
 
-it('versions the cache as v4 so clients drop the shell cached before the weekly-shopping release', function () {
+it('versions the cache as v5 so clients drop the shell cached before the list-planning release', function () {
     $body = $this->get('/sw.js')->streamedContent();
 
-    expect($body)->toContain("const CACHE_VERSION = 'v4';");
+    expect($body)->toContain("const CACHE_VERSION = 'v5';");
 });
 
 it('serves the offline fallback page', function () {
