@@ -4,20 +4,20 @@ namespace App\Http\Requests\Concerns;
 
 trait NormalizesPrice
 {
-    protected function normalizePrice(): void
+    protected function normalizePrice(string $field = 'price'): void
     {
-        if (! is_string($this->input('price'))) {
+        if (! is_string($this->input($field))) {
             return;
         }
 
-        $trimmed = trim($this->input('price'));
+        $trimmed = trim($this->input($field));
 
         if ($trimmed === '' || trim($trimmed, ',.') === '') {
-            $this->merge(['price' => null]);
+            $this->merge([$field => null]);
 
             return;
         }
 
-        $this->merge(['price' => str_replace(',', '.', $trimmed)]);
+        $this->merge([$field => str_replace(',', '.', $trimmed)]);
     }
 }

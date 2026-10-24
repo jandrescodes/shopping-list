@@ -35,6 +35,7 @@ Route::prefix('/lists/{list}/items')->scopeBindings()->group(function () {
         Route::post('/reset-purchased', [ItemController::class, 'resetPurchased']);
         Route::post('/restore-purchased', [ItemController::class, 'restorePurchased']);
         Route::patch('/{item}', [ItemController::class, 'update']);
+        Route::patch('/{item}/position', [ItemController::class, 'move']);
         Route::delete('/{item}', [ItemController::class, 'destroy']);
     });
 });

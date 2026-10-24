@@ -3,7 +3,7 @@
 use App\Http\Resources\ItemResource;
 use App\Models\ShoppingList;
 
-it('returns exactly the expected 7 keys via ItemResource', function () {
+it('returns exactly the expected 8 keys via ItemResource', function () {
     $list = ShoppingList::create(['name' => 'Feria']);
     $item = $list->items()->create([
         'name' => 'Leche',
@@ -20,6 +20,7 @@ it('returns exactly the expected 7 keys via ItemResource', function () {
         'price',
         'added_by',
         'is_purchased',
+        'position',
         'version',
     ])->and($result)->not->toHaveKey('shopping_list_id')
         ->and($result)->not->toHaveKey('created_at')

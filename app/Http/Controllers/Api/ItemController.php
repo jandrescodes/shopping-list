@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MoveItemRequest;
 use App\Http\Requests\RestorePurchasedRequest;
 use App\Http\Requests\StoreItemRequest;
 use App\Http\Requests\UpdateItemRequest;
@@ -26,13 +27,24 @@ class ItemController extends Controller
      */
     public function store(StoreItemRequest $request, ShoppingList $list): JsonResponse
     {
-        $item = ListVersion::write($list, function (ShoppingList $locked) use ($request) {
+        $beforeId = $request->validated('before_id');
+        $item = null;
+
+        ListVersion::write($list, function (ShoppingList $locked) use ($request, $beforeId, &$item) {
             if ($locked->hasReachedActiveItemLimit()) {
                 abort(422, 'La lista alcanzó el límite de 200 ítems.');
             }
 
-            return $locked->items()->create($request->validated());
+            $item = $locked->items()->create(Arr::except($request->validated(), 'before_id'));
+
+            // Born at the end; an undo restores it in its old place when that
+            // neighbour still exists, and stays at the end otherwise.
+            $touched = $beforeId === null ? collect() : $locked->moveItem($item, $beforeId);
+
+            return $touched->push($item)->unique('id');
         });
+
+        $item->refresh();
 
         return response()->json((new ItemResource($item))->resolve(), 201);
     }
@@ -50,6 +62,25 @@ class ItemController extends Controller
 
             return $item;
         });
+
+        return response()->json((new ItemResource($item->fresh()))->resolve());
+    }
+
+    /**
+     * Move an item right before `before_id` (or to the end when null) through
+     * the locked versioned-write helper; the position is computed under the
+     * lock, so concurrent moves and adds never lose each other. The last move
+     * to arrive wins.
+     */
+    public function move(MoveItemRequest $request, ShoppingList $list, Item $item): JsonResponse
+    {
+        $beforeId = $request->validated('before_id');
+
+        // A purchased item changed group and a move to where it already sits
+        // changes nothing: neither bumps the version.
+        if (! $item->is_purchased && ! $list->isItemInPlace($item, $beforeId)) {
+            ListVersion::write($list, fn (ShoppingList $locked) => $locked->moveItem($item, $beforeId));
+        }
 
         return response()->json((new ItemResource($item->fresh()))->resolve());
     }
@@ -132,13 +163,13 @@ class ItemController extends Controller
      * tombstoned in that window. With the cursor missing, non-integer or past
      * the current version, the response is the full active state with an empty
      * deleted_ids. Either way the response carries `cursor` (the list's current
-     * version) and the `list` block with the list's current name and currency.
+     * version) and the `list` block with the list's current name, currency and budget.
      */
     public function sync(Request $request, ShoppingList $list): JsonResponse
     {
         $version = $list->version;
         $cursor = $list->resolveSyncCursor($request->query('cursor'));
-        $listBlock = Arr::only(ShoppingListResource::make($list)->resolve(), ['name', 'currency']);
+        $listBlock = Arr::only(ShoppingListResource::make($list)->resolve(), ['name', 'currency', 'budget']);
 
         if ($cursor === null) {
             return response()->json([

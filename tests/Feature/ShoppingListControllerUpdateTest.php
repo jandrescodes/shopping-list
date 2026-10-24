@@ -77,3 +77,44 @@ it('rejects a currency that is empty after trimming', function () {
             ->assertJsonPath('errors.currency.0', 'La moneda no puede quedar vacía.');
     }
 });
+
+it('sets, changes and removes the budget bumping the version once per write', function () {
+    $list = ShoppingList::factory()->create();
+
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => '150,5'])
+        ->assertOk()
+        ->assertJsonPath('budget', '150.50')
+        ->assertJsonPath('version', 1);
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => 0])
+        ->assertOk()
+        ->assertJsonPath('budget', '0.00')
+        ->assertJsonPath('version', 2);
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => null])
+        ->assertOk()
+        ->assertJsonPath('budget', null)
+        ->assertJsonPath('version', 3);
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => ''])->assertOk()->assertJsonPath('budget', null);
+
+    expect($list->fresh()->budget)->toBeNull();
+});
+
+it('keeps the currency when only the budget changes and the other way around', function () {
+    $list = ShoppingList::factory()->create(['currency' => 'USD', 'budget' => 100]);
+
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => 200])->assertOk();
+    expect($list->fresh()->currency)->toBe('USD');
+
+    $this->patchJson("/api/lists/{$list->slug}", ['currency' => 'Bs'])->assertOk();
+    expect($list->fresh()->budget)->toBe('200.00')
+        ->and($list->fresh()->currency)->toBe('Bs');
+});
+
+it('rejects a negative or non-numeric budget with 422 and keeps the stored one', function () {
+    $list = ShoppingList::factory()->create(['budget' => 100]);
+
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => '-1'])->assertUnprocessable()->assertJsonValidationErrors('budget');
+    $this->patchJson("/api/lists/{$list->slug}", ['budget' => 'mucho'])->assertUnprocessable();
+
+    expect($list->fresh()->budget)->toBe('100.00')
+        ->and($list->fresh()->version)->toBe(0);
+});

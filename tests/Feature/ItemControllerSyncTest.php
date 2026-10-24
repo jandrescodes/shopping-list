@@ -3,19 +3,40 @@
 use App\Models\Item;
 use App\Models\ShoppingList;
 
-it('returns the full active state ordered by RF-18 when the cursor is missing', function () {
+it('returns the full active state ordered by position when the cursor is missing', function () {
     $list = ShoppingList::factory()->create();
-    $bought = Item::factory()->for($list, 'shoppingList')->create(['is_purchased' => true, 'created_at' => now()->subMinutes(10)]);
-    $first = Item::factory()->for($list, 'shoppingList')->create(['is_purchased' => false, 'created_at' => now()->subMinutes(5)]);
-    $second = Item::factory()->for($list, 'shoppingList')->create(['is_purchased' => false, 'created_at' => now()->subMinutes(1)]);
+    $bought = Item::factory()->for($list, 'shoppingList')->create(['is_purchased' => true, 'position' => 1024]);
+    $first = Item::factory()->for($list, 'shoppingList')->create(['is_purchased' => false, 'position' => 3072]);
+    $second = Item::factory()->for($list, 'shoppingList')->create(['is_purchased' => false, 'position' => 2048]);
 
     $this->getJson("/api/lists/{$list->slug}/items")
         ->assertOk()
         ->assertJsonPath('deleted_ids', [])
         ->assertJsonPath('cursor', $list->fresh()->version)
-        ->assertJsonPath('items.0.id', $first->id)
-        ->assertJsonPath('items.1.id', $second->id)
+        ->assertJsonPath('items.0.id', $second->id)
+        ->assertJsonPath('items.0.position', 2048)
+        ->assertJsonPath('items.1.id', $first->id)
         ->assertJsonPath('items.2.id', $bought->id);
+});
+
+it('orders a delta by position and keeps the position of a purchased item when toggled', function () {
+    $list = ShoppingList::factory()->create();
+    $a = Item::factory()->for($list, 'shoppingList')->create(['position' => 3072]);
+    $b = Item::factory()->for($list, 'shoppingList')->create(['position' => 1024]);
+    $base = $this->getJson("/api/lists/{$list->slug}/items")->json('cursor');
+
+    $this->patchJson("/api/lists/{$list->slug}/items/{$a->id}", ['is_purchased' => true])->assertOk()
+        ->assertJsonPath('position', 3072);
+    $this->patchJson("/api/lists/{$list->slug}/items/{$b->id}", ['name' => 'Otro'])->assertOk();
+
+    $this->getJson("/api/lists/{$list->slug}/items?cursor={$base}")
+        ->assertOk()
+        ->assertJsonPath('items.0.id', $b->id)
+        ->assertJsonPath('items.1.id', $a->id)
+        ->assertJsonPath('items.1.position', 3072);
+
+    $this->patchJson("/api/lists/{$list->slug}/items/{$a->id}", ['is_purchased' => false])->assertOk()
+        ->assertJsonPath('position', 3072);
 });
 
 it('returns a delta with changed items and tombstoned ids for a valid cursor', function () {
@@ -48,7 +69,7 @@ it('returns a delta with changed items and tombstoned ids for a valid cursor', f
             'items' => [],
             'deleted_ids' => [],
             'cursor' => $fresh->version,
-            'list' => ['name' => $fresh->name, 'currency' => $fresh->currency],
+            'list' => ['name' => $fresh->name, 'currency' => $fresh->currency, 'budget' => null],
         ]);
 });
 
@@ -57,7 +78,7 @@ it('brings the new name and currency on the sync after a list write', function (
     $base = $this->getJson("/api/lists/{$list->slug}/items")->json('cursor');
 
     expect($this->getJson("/api/lists/{$list->slug}/items")->json('list'))
-        ->toEqual(['name' => $list->name, 'currency' => $list->fresh()->currency]);
+        ->toEqual(['name' => $list->name, 'currency' => $list->fresh()->currency, 'budget' => null]);
 
     $this->patchJson("/api/lists/{$list->slug}", [
         'name' => 'Mercado',
@@ -67,7 +88,7 @@ it('brings the new name and currency on the sync after a list write', function (
     $response = $this->getJson("/api/lists/{$list->slug}/items?cursor={$base}")->assertOk();
 
     expect($response->json('list'))
-        ->toEqual(['name' => 'Mercado', 'currency' => 'USD'])
+        ->toEqual(['name' => 'Mercado', 'currency' => 'USD', 'budget' => null])
         ->and($response->json('cursor'))->toBe($list->fresh()->version)
         ->and($response->json('deleted_ids'))->toBe([]);
 });
@@ -102,4 +123,11 @@ it('returns 404 when syncing a deleted or unknown list (RF-27)', function () {
 
     $this->getJson("/api/lists/{$list->slug}/items")->assertNotFound();
     $this->getJson('/api/lists/does-not-exist-000000/items')->assertNotFound();
+});
+
+it('brings the budget as a two-decimal string in the list block', function () {
+    $list = ShoppingList::factory()->create();
+    $list->forceFill(['budget' => 12.5])->save();
+
+    expect($this->getJson("/api/lists/{$list->slug}/items")->json('list.budget'))->toBe('12.50');
 });

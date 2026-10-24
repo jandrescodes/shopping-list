@@ -98,3 +98,16 @@ it('does not let duplicating spend the writes allowance', function () {
 
     $this->patchJson("/api/lists/{$list->slug}", ['name' => 'Still allowed'])->assertOk();
 });
+
+it('spends the writes allowance when moving an item and answers 429 with Retry-After', function () {
+    $list = ShoppingList::factory()->create();
+    $item = $list->items()->create(['name' => 'a']);
+
+    foreach (range(1, 120) as $_) {
+        $this->patchJson("/api/lists/{$list->slug}/items/{$item->id}/position", ['before_id' => null])->assertOk();
+    }
+
+    $this->patchJson("/api/lists/{$list->slug}/items/{$item->id}/position", ['before_id' => null])
+        ->assertStatus(429)
+        ->assertHeader('Retry-After');
+});

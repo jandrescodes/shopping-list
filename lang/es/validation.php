@@ -170,6 +170,9 @@ return [
         'price' => [
             'regex' => 'El precio debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 12,50.',
         ],
+        'budget' => [
+            'regex' => 'El presupuesto debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 150,50.',
+        ],
         'currency' => [
             'required' => 'La moneda no puede quedar vacía.',
             'max' => 'La moneda no puede superar los 5 caracteres.',

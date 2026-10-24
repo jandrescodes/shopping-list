@@ -36,15 +36,11 @@ Route::get('/offline', fn () => view('offline'));
 
 // List page. Exact slug match; direct 404 if it does not exist. Items are
 // rendered server-side in the same order the client uses (not purchased first,
-// then purchased; each group by creation ascending); resources/js/list.js
+// then purchased; each group by position ascending); resources/js/list.js
 // takes over from there. The `noindex` middleware keeps the unguessable slug
 // out of search indexes.
 Route::get('/l/{list}', function (ShoppingList $list) {
-    $items = $list->items()
-        ->orderBy('is_purchased')
-        ->orderBy('created_at')
-        ->orderBy('id')
-        ->get();
+    $items = $list->items()->orderedActive()->get();
 
     return view('list', ['list' => $list, 'items' => $items]);
 })->middleware('noindex');

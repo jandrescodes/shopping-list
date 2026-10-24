@@ -14,7 +14,13 @@ class ShoppingList extends Model
 
     public const MAX_ACTIVE_ITEMS = 200;
 
-    protected $fillable = ['name', 'currency'];
+    public const POSITION_STEP = 1024;
+
+    protected $fillable = ['name', 'currency', 'budget'];
+
+    protected $casts = [
+        'budget' => 'decimal:2',
+    ];
 
     /**
      * Test seam: when set, replaces the CSPRNG slug generator so a test can
@@ -86,6 +92,119 @@ class ShoppingList extends Model
         return $cursor !== null && $cursor <= $this->version ? $cursor : null;
     }
 
+    /**
+     * Position that places an item right before the active item `$beforeId`,
+     * or at the end when it is null, unknown, deleted or from another list.
+     * `$moving` is left out of the neighbour search. Returns null when the gap
+     * before the neighbour is exhausted and the list needs renumbering.
+     */
+    public function positionBefore(?int $beforeId, ?Item $moving): ?int
+    {
+        $others = fn () => $this->items()->when($moving, fn ($q) => $q->whereKeyNot($moving->getKey()));
+        $before = $beforeId === null ? null : $others()->whereKey($beforeId)->first();
+
+        if ($before === null) {
+            return ($others()->max('position') ?? 0) + self::POSITION_STEP;
+        }
+
+        $prev = $others()
+            ->where(fn ($q) => $q->where('position', '<', $before->position)
+                ->orWhere(fn ($q) => $q->where('position', $before->position)->where('id', '<', $before->id)))
+            ->orderByDesc('position')->orderByDesc('id')->first();
+
+        if ($prev === null) {
+            return $before->position - self::POSITION_STEP;
+        }
+
+        $position = ($prev->position + $before->position) >> 1;
+
+        return $position > $prev->position && $position < $before->position ? $position : null;
+    }
+
+    /**
+     * Moves an item right before `$beforeId` (or to the end) and returns the
+     * items whose position changed: empty when it is already there, every
+     * active item when the list had to be renumbered.
+     *
+     * @return Collection<int, Item>
+     */
+    public function moveItem(Item $item, ?int $beforeId): Collection
+    {
+        $ordered = $this->itemsExcept($item);
+        $slot = $this->slotOf($ordered, $beforeId);
+
+        if ($beforeId === $item->id || $this->isInPlace($item, $ordered, $slot)) {
+            return new Collection;
+        }
+
+        $position = $this->positionBefore($beforeId, $item);
+
+        if ($position === null) {
+            return $this->renumberItems($ordered, $item, $slot ?? false);
+        }
+
+        $item->update(['position' => $position]);
+
+        return new Collection([$item]);
+    }
+
+    /**
+     * Whether moving `$item` before `$beforeId` would change nothing, so the
+     * caller can skip the versioned write.
+     */
+    public function isItemInPlace(Item $item, ?int $beforeId): bool
+    {
+        $ordered = $this->itemsExcept($item);
+
+        return $beforeId === $item->id || $this->isInPlace($item, $ordered, $this->slotOf($ordered, $beforeId));
+    }
+
+    /**
+     * @return Collection<int, Item>
+     */
+    private function itemsExcept(Item $item): Collection
+    {
+        return $this->items()->whereKeyNot($item->getKey())->orderBy('position')->orderBy('id')->get();
+    }
+
+    /**
+     * Index of the neighbour in `$ordered`, or null when the target is the end.
+     *
+     * @param  Collection<int, Item>  $ordered
+     */
+    private function slotOf(Collection $ordered, ?int $beforeId): ?int
+    {
+        $slot = $beforeId === null ? false : $ordered->search(fn (Item $other) => $other->id === $beforeId);
+
+        return $slot === false ? null : $slot;
+    }
+
+    /**
+     * Rewrites every active position in steps of 1024 with `$item` placed at
+     * `$slot` of `$ordered` (the end when false).
+     *
+     * @param  Collection<int, Item>  $ordered  active items without `$item`, in order
+     * @return Collection<int, Item>
+     */
+    private function renumberItems(Collection $ordered, Item $item, int|false $slot): Collection
+    {
+        $sequence = $ordered->values();
+        $sequence->splice($slot === false ? $sequence->count() : $slot, 0, [$item]);
+
+        return $sequence->each(function (Item $each, int $index) {
+            $each->update(['position' => ($index + 1) * self::POSITION_STEP]);
+        });
+    }
+
+    private function isInPlace(Item $item, Collection $ordered, ?int $slot): bool
+    {
+        $after = fn (Item $other) => [$other->position, $other->id] <=> [$item->position, $item->id];
+        $previous = $slot === null ? $ordered->last() : ($slot > 0 ? $ordered[$slot - 1] : null);
+        $next = $slot === null ? null : $ordered[$slot];
+
+        return ($previous === null || $after($previous) < 0) && ($next === null || $after($next) > 0);
+    }
+
     public function hasReachedActiveItemLimit(): bool
     {
         return $this->items()->count() >= self::MAX_ACTIVE_ITEMS;
@@ -150,8 +269,9 @@ class ShoppingList extends Model
     /**
      * Creates a new list named "Copia de <name>" (cut to the 60-character name
      * limit) with this list's currency, plus an unmarked copy of every active
-     * item's name, quantity and price in creation order. Who added each item is
-     * not carried over, and deleted items stay behind. All or nothing.
+     * item's name, quantity, price and position, so the manual order carries
+     * over. Who added each item is not carried over, and deleted items stay
+     * behind. All or nothing.
      */
     public function duplicate(): self
     {
@@ -163,10 +283,11 @@ class ShoppingList extends Model
             $copy = static::create([
                 'name' => rtrim(mb_substr('Copia de '.$source->name, 0, 60)),
                 'currency' => $source->currency,
+                'budget' => $source->budget,
             ]);
 
-            $source->items()->orderBy('created_at')->orderBy('id')->get()->each(
-                fn (Item $item) => $copy->items()->create($item->only(['name', 'quantity', 'price']))
+            $source->items()->orderBy('position')->orderBy('id')->get()->each(
+                fn (Item $item) => $copy->items()->create($item->only(['name', 'quantity', 'price', 'position']))
             );
 
             return $copy;

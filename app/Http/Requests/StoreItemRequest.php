@@ -24,6 +24,7 @@ class StoreItemRequest extends FormRequest
             'quantity' => ['nullable', 'string', 'max:50'],
             'price' => ['nullable', 'regex:/^\d{1,8}(\.\d{1,2})?$/', 'min:0', 'max:99999999.99'],
             'added_by' => ['nullable', 'string', 'max:50'],
+            'before_id' => ['nullable', 'integer', 'min:1'],
         ];
     }
 

@@ -12,12 +12,24 @@ class Item extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'quantity', 'price', 'added_by', 'is_purchased'];
+    protected $fillable = ['name', 'quantity', 'price', 'added_by', 'is_purchased', 'position'];
 
     protected $casts = [
         'is_purchased' => 'boolean',
         'price' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Item $item) {
+            if ($item->position !== null) {
+                return;
+            }
+
+            $max = static::withTrashed()->where('shopping_list_id', $item->shopping_list_id)->max('position');
+            $item->position = ($max ?? 0) + 1024;
+        });
+    }
 
     public function shoppingList(): BelongsTo
     {
@@ -26,11 +38,11 @@ class Item extends Model
 
     /**
      * Server-fixed order: not purchased first, then purchased; each group by
-     * creation date ascending.
+     * position ascending (id breaks ties).
      */
     public function scopeOrderedActive(Builder $query): void
     {
-        $query->orderBy('is_purchased')->orderBy('created_at')->orderBy('id');
+        $query->orderBy('is_purchased')->orderBy('position')->orderBy('id');
     }
 
     public function setQuantityAttribute(?string $value): void

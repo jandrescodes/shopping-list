@@ -42,3 +42,32 @@ it('applies the same rules when renaming a list', function () {
         ->assertOk()
         ->assertJson(['name' => 'Despensa']);
 });
+
+it('accepts a valid budget, zero included, and a decimal comma', function (string $sent, string $stored) {
+    $this->postJson('/_test/update-list', ['budget' => $sent])
+        ->assertOk()
+        ->assertExactJson(['budget' => $stored]);
+})->with([
+    'integer' => ['150', '150'],
+    'zero' => ['0', '0'],
+    'comma' => ['150,50', '150.50'],
+    'padded' => ['  12.5 ', '12.5'],
+]);
+
+it('clears the budget with null or a blank value', function (mixed $sent) {
+    $this->postJson('/_test/update-list', ['budget' => $sent])
+        ->assertOk()
+        ->assertExactJson(['budget' => null]);
+})->with([null, '', '   ', ',']);
+
+it('leaves the budget out of validated when it is absent', function () {
+    $this->postJson('/_test/update-list', ['currency' => 'USD'])
+        ->assertOk()
+        ->assertExactJson(['currency' => 'USD']);
+});
+
+it('rejects an invalid budget with a Spanish message', function (mixed $sent) {
+    $this->postJson('/_test/update-list', ['budget' => $sent])
+        ->assertStatus(422)
+        ->assertJsonPath('errors.budget.0', 'El presupuesto debe ser un número de hasta 8 dígitos y 2 decimales, por ejemplo 150,50.');
+})->with(['-5', 'abc', '1.999', '123456789', '1e3']);

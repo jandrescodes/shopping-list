@@ -44,6 +44,13 @@ it('inherits the currency', function () {
     expect($original->duplicate()->currency)->toBe('USD');
 });
 
+it('inherits the budget, and a list without one stays without one', function () {
+    $original = ShoppingList::factory()->create(['budget' => 80]);
+
+    expect($original->duplicate()->fresh()->budget)->toBe('80.00')
+        ->and(ShoppingList::factory()->create()->duplicate()->fresh()->budget)->toBeNull();
+});
+
 it('copies name, quantity and price as unmarked items without added_by', function () {
     $original = ShoppingList::factory()->create();
     Item::factory()->for($original, 'shoppingList')->create([
@@ -83,15 +90,20 @@ it('keeps a price of zero, which is not the same as no price', function () {
     expect($original->duplicate()->activeItemsOrdered()->first()->price)->toBe('0.00');
 });
 
-it('copies the items in the creation order of the original', function () {
+it('keeps the manual order of the original, purchased items included, all pending', function () {
     $original = ShoppingList::factory()->create();
-    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Tercero', 'created_at' => now()->subMinutes(1)]);
-    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Primero', 'created_at' => now()->subMinutes(30)]);
-    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Segundo', 'created_at' => now()->subMinutes(10)]);
+    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Tercero', 'position' => 3000]);
+    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Comprado', 'is_purchased' => true, 'position' => 2000]);
+    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Primero', 'position' => 1000]);
+    Item::factory()->for($original, 'shoppingList')->create(['name' => 'Borrado', 'position' => 1500])->delete();
 
     $copy = $original->duplicate();
 
-    expect($copy->activeItemsOrdered()->pluck('name')->all())->toBe(['Primero', 'Segundo', 'Tercero']);
+    expect($copy->activeItemsOrdered()->pluck('name')->all())->toBe(['Primero', 'Comprado', 'Tercero'])
+        ->and($copy->items()->pluck('position', 'name')->all())->toEqual(['Tercero' => 3000, 'Comprado' => 2000, 'Primero' => 1000])
+        ->and($copy->items()->where('is_purchased', true)->exists())->toBeFalse()
+        ->and($original->items()->orderBy('position')->pluck('position', 'name')->all())
+        ->toBe(['Primero' => 1000, 'Comprado' => 2000, 'Tercero' => 3000]);
 });
 
 it('does not copy deleted items', function () {

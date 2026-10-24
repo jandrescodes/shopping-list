@@ -13,7 +13,7 @@ it('creates an item, not purchased, in ItemResource shape and stamps the version
     ]);
 
     $response->assertCreated()
-        ->assertExactJsonStructure(['id', 'name', 'quantity', 'price', 'added_by', 'is_purchased', 'version'])
+        ->assertExactJsonStructure(['id', 'name', 'quantity', 'price', 'added_by', 'is_purchased', 'position', 'version'])
         ->assertJson([
             'name' => 'Leche',
             'quantity' => '2 L',
@@ -95,4 +95,42 @@ it('stores a name with markup literally, unescaped', function () {
 
 it('returns 404 when adding an item to an unknown list', function () {
     $this->postJson('/api/lists/does-not-exist-000000/items', ['name' => 'Pan'])->assertNotFound();
+});
+
+it('places the new item right before an active before_id neighbour', function () {
+    $list = ShoppingList::factory()->create();
+    $a = $list->items()->create(['name' => 'a']);
+    $b = $list->items()->create(['name' => 'b']);
+
+    $this->postJson("/api/lists/{$list->slug}/items", ['name' => 'nuevo', 'before_id' => $b->id])
+        ->assertCreated()
+        ->assertExactJsonStructure(['id', 'name', 'quantity', 'price', 'added_by', 'is_purchased', 'position', 'version'])
+        ->assertJsonPath('position', ($a->position + $b->position) >> 1);
+
+    expect($list->items()->orderBy('position')->pluck('name')->all())->toBe(['a', 'nuevo', 'b'])
+        ->and($list->fresh()->version)->toBe(1);
+});
+
+it('puts the new item at the end when before_id is null, absent, unknown or deleted', function () {
+    $list = ShoppingList::factory()->create();
+    $a = $list->items()->create(['name' => 'a']);
+    $gone = $list->items()->create(['name' => 'gone']);
+    $gone->delete();
+
+    foreach ([['before_id' => null], [], ['before_id' => 999999], ['before_id' => $gone->id]] as $n => $extra) {
+        $this->postJson("/api/lists/{$list->slug}/items", ['name' => "n{$n}"] + $extra)->assertCreated();
+    }
+
+    expect($list->items()->orderBy('position')->pluck('name')->all())->toBe(['a', 'n0', 'n1', 'n2', 'n3']);
+});
+
+it('rejects an invalid before_id with 422 and does not store it as a column', function () {
+    $list = ShoppingList::factory()->create();
+
+    $this->postJson("/api/lists/{$list->slug}/items", ['name' => 'x', 'before_id' => 0])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('before_id');
+    $this->postJson("/api/lists/{$list->slug}/items", ['name' => 'x', 'before_id' => 'abc'])
+        ->assertUnprocessable();
+    expect($list->items()->count())->toBe(0);
 });

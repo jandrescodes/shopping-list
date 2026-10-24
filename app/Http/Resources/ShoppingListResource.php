@@ -13,6 +13,7 @@ class ShoppingListResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'currency' => $this->currency,
+            'budget' => $this->budget,
             'version' => $this->version,
         ];
     }
