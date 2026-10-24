@@ -40,10 +40,25 @@ componentes).
   mueve el foco a propósito (`$nextTick(() => $refs.x.focus())`) y lo devuelve
   al cancelar o guardar; si no, cae al `<body>`. Un panel `role="alertdialog"`
   enfoca su botón seguro (Cancelar) al abrirse. Orden del menú: Renombrar,
-  Moneda, Copiar como texto, Duplicar lista, Reiniciar compras (solo con
+  Moneda, Presupuesto, Copiar como texto, Duplicar lista, Reiniciar compras (solo con
   ítems comprados, `x-show="hasPurchased"`) y Eliminar lista; los avisos de
   esas acciones llevan su propio `id` y fondo (`#export-notice`,
-  `#reset-undo`), ver `AGENTS.md`.
+  `#reset-undo`, `#budget-alert`), ver `AGENTS.md`. El formulario inline de
+  Presupuesto (`#budget-input`) sigue el patrón de la moneda y su campo mide
+  `min-h-11`.
+- **Reordenar.** El asa (`x-sort:handle`) lleva `touch-none` solo ella: el
+  resto de la fila deja pasar el scroll vertical del celular. Los botones
+  subir/bajar van en una segunda línea de la fila (`col-start-4 row-start-2`),
+  son la alternativa de teclado y lector de pantalla, y las posiciones se
+  anuncian en `#move-announcement` (`role="status"`). Sin dos pendientes no hay
+  controles.
+- **Sugerencias del nombre.** `#new-item` es un combobox (`aria-expanded`,
+  `aria-activedescendant`) y el panel `#name-suggestions` es un `listbox` con
+  opciones `min-h-11` que se eligen con `mousedown.prevent` para no cerrar el
+  teclado del celular; Enter con una sugerencia activa solo rellena el nombre.
+- **Aviso de presupuesto.** `#budget-alert` usa `bg-orange-50` con texto
+  `text-orange-900` y el importe escrito («Te pasas por Bs 5,00»): no depende
+  solo del color y no reutiliza los fondos reservados.
 - **Un solo aviso de conexión.** `showOfflineNotice` (`list.js`) oculta el
   aviso ámbar mientras el error visible es el de escritura sin red, que ya
   dice "Sin conexión"; así no se apilan dos avisos casi iguales en mobile.

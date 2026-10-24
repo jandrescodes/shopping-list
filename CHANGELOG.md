@@ -5,6 +5,42 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.4.0] - 2026-10-24
+
+### Añadido
+
+- **Reordenar ítems.** Los pendientes se reordenan arrastrando un asa dedicada (no interfiere con el scroll táctil) o
+  con los botones «Subir» y «Bajar»,
+  usables con teclado y lector de pantalla. El orden es único por lista y se
+  propaga a los demás dispositivos por la sincronización; marcar y desmarcar,
+  reiniciar compras, deshacer un borrado y duplicar la lista conservan el
+  lugar de cada ítem, y el texto exportado sigue ese orden. Pulsaciones
+  seguidas sobre un mismo ítem se agrupan en una sola petición (`PATCH /api/lists/{slug}/items/{id}/position` con
+  `before_id`, bajo el
+  límite `writes`). `POST …/items` acepta `before_id` para restituir un ítem
+  borrado en su sitio. La posición va en la carga completa y en el delta del
+  sync.
+- **Autocompletar nombres.** Desde 2 caracteres, hasta 5 sugerencias tomadas
+  de los ítems activos de la propia lista (sin distinguir mayúsculas ni
+  tildes, un nombre una sola vez), elegibles con teclado y con toque. Se
+  calculan en el cliente: sin peticiones por tecla ni historial propio.
+- **Presupuesto por lista.** Entrada «Presupuesto» en el menú de opciones (`PATCH /api/lists/{slug}` con `budget`; vacío
+  lo quita, `0` es válido). Se
+  muestra junto al total pendiente y, si el total lo supera, un aviso naranja
+  dice «Te pasas por Bs 5,00». No bloquea nada, no convierte monedas y se
+  propaga por el sync. Duplicar la lista copia el presupuesto; el texto
+  exportado no lo incluye.
+- Dependencia `@alpinejs/sort` 3.17.1 (versión exacta) para el arrastre.
+
+### Cambiado
+
+- `items.position` (`BIGINT`, huecos de 1024) y `shopping_lists.budget`
+  (`DECIMAL(10,2)` nulo): dos migraciones nuevas. **Exigen `php artisan
+  migrate` en producción tras el despliegue.** La migración de `position`
+  rellena el orden previo (creación e id) antes de exigir `NOT NULL`.
+- El orden de los ítems deja de ser «por fecha de creación»: es `position`.
+- Service worker `CACHE_VERSION` `v4` → `v5`.
+
 ## [1.3.0] - 2026-10-23
 
 ### Añadido
@@ -20,8 +56,8 @@ y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
   compartida con el borrado de ítems: el último reemplaza al anterior.
 - **Duplicar lista.** Opción del menú que crea "Copia de <nombre>" (máximo 60
   caracteres) con la misma moneda y una copia sin marcar de cada ítem (nombre,
-  cantidad y precio, sin quién lo agregó ni los borrados), y lleva a la copia
-  (`POST /api/lists/{slug}/duplicate`). Es atómica y consume el cupo
+  cantidad y precio, sin quién lo agregó ni los borrados), y lleva a la copia (`POST /api/lists/{slug}/duplicate`). Es
+  atómica y consume el cupo
   `lists-create` de crear listas; si se excede, el aviso dice cuántos minutos
   esperar.
 - **Copiar como texto.** Opción del menú que copia la lista al portapapeles
@@ -52,8 +88,7 @@ y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
   `api/*` siguen siendo JSON.
 - **Documentación derivada** (`/sdd:docs`): `docs/schema.md` (estructuras de
   datos) y `docs/app-flow.md` (recorridos, caminos alternativos, estados de
-  error y pantallas). `deliverables/trd.md` se genera pero no se versiona
-  (`deliverables/` está en `.gitignore`).
+  error y pantallas). `deliverables/trd.md` se genera pero no se versiona (`deliverables/` está en `.gitignore`).
 - `docs/ui-guidelines.md`: convenciones de interfaz y orden de módulos de
   Alpine, movidas desde `AGENTS.md`, que ahora deja solo la regla y el enlace.
 
@@ -267,8 +302,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   borra físicamente las lápidas anteriores a la fecha; aborta sin `--before`.
 - **Documentación.** `README.md`, `CHANGELOG.md`, `AGENTS.md` (fuente única de
   convenciones), `docs/constitution.md`, `docs/roadmap.md`, `docs/deploy.md`.
-- **Tests.** 119 Pest 3.8 (API y persistencia, contra MySQL) + 22 Playwright
-  (capa de cliente).
+- **Tests.** 119 Pest 3.8 (API y persistencia, contra MySQL) + 22 Playwright (capa de cliente).
 - **CI/CD.** `.github/workflows/ci.yml` (Pest + Pint en push/PR a `main`) y
   `.github/workflows/deploy.yml` (deploy a Hostinger: tests → build en el runner
   → `rsync` sobre SSH → `artisan migrate`/caches → health check; se dispara al
@@ -281,6 +315,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
+[1.4.0]: https://github.com/jandrescodes/shopping-list/compare/1.3.0...1.4.0
 [1.2.3]: https://github.com/jandrescodes/shopping-list/compare/1.2.2...1.2.3
 [1.2.2]: https://github.com/jandrescodes/shopping-list/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/jandrescodes/shopping-list/compare/1.2.0...1.2.1

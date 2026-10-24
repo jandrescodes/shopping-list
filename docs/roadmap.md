@@ -69,6 +69,18 @@
   58 Playwright y `pint --test` en verde, axe sin violaciones).
   → `specs/003-compra-semanal/`
 
+- **Armar y planear la lista: reordenar, autocompletar y presupuesto** — feature
+  completa (T0-T24 + cierre), versión **1.4.0**. Reordenar los pendientes con
+  asa de arrastre o botones subir/bajar (orden compartido por todos los
+  dispositivos y conservado al duplicar, reiniciar y deshacer), sugerencias de
+  nombres desde los ítems de la propia lista y presupuesto opcional con aviso
+  al superarlo. Validada RF por RF en
+  `specs/004-armar-y-planear-la-lista/validation.md` (veredicto: spec
+  cumplida; 267 Pest, 112 Playwright y `pint --test` en verde, axe sin
+  violaciones). Verificada también con dos navegadores móviles emulados;
+  falta la comprobación en dos celulares reales.
+  → `specs/004-armar-y-planear-la-lista/`
+
 ## Siguiente 🔜
 
 _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
@@ -78,13 +90,6 @@ _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
 Por orden de valor. Todas caben en el hosting compartido sin colas ni procesos
 persistentes.
 
-- **Reordenar ítems** — columna `position` en `items` y arrastre con handle
-  dedicado (no choca con el scroll en touch), con botones subir/bajar como
-  alternativa accesible. Cubre el caso de agrupar por pasillo sin categorías.
-- **Autocompletado de ítems frecuentes** — sugerencias desde el historial de
-  la propia lista, sin catálogo global.
-- **Presupuesto opcional por lista** — tope junto al total ya calculado
-  (precio + moneda) con aviso al superarlo.
 - **Compartir con Web Share API y QR** — `navigator.share` además de copiar el
   enlace; QR para pasar la lista a otro celular en casa.
 - **Limpieza de listas abandonadas** — comando `lists:purge-inactive` (p. ej.

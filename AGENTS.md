@@ -26,8 +26,8 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   corrida, así que ese flag sube los topes de `bootstrap/app.php`. Pest no lo
   fija y ejercita los límites reales (`RateLimitingTest`).
   Locators Playwright: no selecciones por rol ARIA ancho (`p[role="status"]`,
-  `[role="alert"]`) — la vista de lista tiene varios avisos que comparten rol
-  (error, offline, "enlace copiado"). Scopea por la clase de fondo del aviso
+  `[role="alert"]`) — la vista de lista tiene varios avisos que comparten rol (error, offline, "enlace copiado"). Scopea
+  por la clase de fondo del aviso
   concreto (`.bg-amber-50`, `.bg-green-50`, …) o `hasText`.
   Primera vez: `npx playwright install chromium`.
 - Lint/formato: `vendor/bin/pint` (`php artisan pint` no existe: Pint no
@@ -61,7 +61,17 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   (`throttle:lists-create`, comparte cupo con crear lista) y, bajo
   `throttle:writes`, `items/reset-purchased` y `items/restore-purchased`
   (reiniciar compras y su deshacer: una petición cada uno, el servidor filtra
-  por el estado de la BD).
+  por el estado de la BD) y `PATCH items/{item}/position` (mover un ítem
+  pendiente: `{before_id}` = "insertar antes de ese ítem", `null` = al final;
+  `POST items` acepta el mismo `before_id`). `PATCH /lists/{list}` también
+  guarda `budget` (`null` o vacío lo quita).
+- **`items.position`**: una sola secuencia por lista (pendientes y comprados
+  comparten posición), `BIGINT` con huecos de 1024. Mover escribe una sola
+  fila con el punto medio; si el hueco se agota, `ShoppingList` renumera toda
+  la lista de 1024 en 1024 y todos los ítems tocados llevan la misma versión (el delta del sync los reenvía). El orden
+  de lectura es
+  `is_purchased, position, id`. Un `DEFAULT 0` rompería el orden de las
+  listas existentes: la migración rellena antes de exigir `NOT NULL`.
 - `resources/js/app.js` (bootstrap + registro del service worker, global),
   `resources/js/home.js` (glue de la home, `@vite` solo ahí),
   `resources/js/list.js` (Alpine, versión pineada, global),
@@ -120,7 +130,8 @@ Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
 - No añadas WebSockets/Reverb ni autenticación sin cambiar antes la constitución.
 - **Vistas Blade sin `<script>`/`<style>` inline** (salvo `offline.blade.php`,
   fallback cacheado por el SW que debe renderizar sin build ni red, y
-  `errors/500.blade.php`, que no puede depender del build; ver su comentario). JS de página va a su propio módulo en `resources/js/` y
+  `errors/500.blade.php`, que no puede depender del build; ver su comentario). JS de página va a su propio módulo en
+  `resources/js/` y
   se registra como entrada en `vite.config.js`; si es solo para una vista, se
   incluye con `@vite([...])` dentro de `@section('scripts')` en esa vista, y
   `layout.blade.php` lo imprime con `@yield('scripts')` al final de `<body>`.
@@ -133,10 +144,16 @@ Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
   claro), así que **un elemento nuevo no debe reutilizar esas clases**. Cada
   componente nuevo lleva su propio `id` (p. ej. `#currency-chip`) o una
   clase semántica, y se localiza con eso. Fondos ya tomados por avisos
-  propios: `bg-sky-50` (`#reset-undo`, reinicio de compras) y `bg-teal-50`
-  (`#export-notice`, lista copiada como texto).
-- **Una sola ranura de deshacer** en `list.js`: el borrado de ítem
-  (`pendingUndo`) y el reinicio de compras (`resetUndo`) comparten
+  propios: `bg-sky-50` (`#reset-undo`, reinicio de compras), `bg-teal-50`
+  (`#export-notice`, lista copiada como texto) y `bg-orange-50`
+  (`#budget-alert`, presupuesto excedido). Otros `id` reservados:
+  `#budget-line`, `#budget-chip`, `#budget-input`, `#move-announcement`,
+  `#name-suggestions`.
+- **Tests táctiles**: `Input.synthesizeScrollGesture` no scrollea en Chromium
+  headless; los gestos de `list-order.spec.js` usan
+  `Input.dispatchTouchEvent` (start, moves, end) con `hasTouch` e `isMobile`.
+- **Una sola ranura de deshacer** en `list.js`: el borrado de ítem (`pendingUndo`) y el reinicio de compras
+  (`resetUndo`) comparten
   `undoTimer` y se limpian mutuamente; el último aviso reemplaza al anterior,
   para que "Deshacer" siempre signifique lo último que se hizo. Rompido en real: el chip de moneda
   se estilizó con `bg-gray-100` y `list-share.spec.js:70` falló con
@@ -174,16 +191,16 @@ Una feature no está cerrada hasta que existen sus cuatro archivos.
 
 ### Fases
 
-| #   | Fase           | Comando (plugin · script)                   |
-| --- | -------------- | ------------------------------------------- |
-| 1   | Constitución   | `/sdd:constitution` · `/sdd-constitution`   |
-| 2   | Especificación | `/sdd:spec` · `/sdd-spec`                   |
-| 3   | Clarificación  | `/sdd:clarify` · `/sdd-clarify`             |
-| 4   | Planificación  | `/sdd:plan` · `/sdd-plan`                   |
-| 5   | Tareas         | `/sdd:tasks` · `/sdd-tasks`                 |
-| 6   | Implementación | `/sdd:implement <n>` · `/sdd-implement <n>` |
-| 7   | Validación     | `/sdd:validate` · `/sdd-validate`           |
-| 8   | Cambio         | `/sdd:change <req>` · `/sdd-change <req>`   |
+| # | Fase           | Comando (plugin · script)                   |
+|---|----------------|---------------------------------------------|
+| 1 | Constitución   | `/sdd:constitution` · `/sdd-constitution`   |
+| 2 | Especificación | `/sdd:spec` · `/sdd-spec`                   |
+| 3 | Clarificación  | `/sdd:clarify` · `/sdd-clarify`             |
+| 4 | Planificación  | `/sdd:plan` · `/sdd-plan`                   |
+| 5 | Tareas         | `/sdd:tasks` · `/sdd-tasks`                 |
+| 6 | Implementación | `/sdd:implement <n>` · `/sdd-implement <n>` |
+| 7 | Validación     | `/sdd:validate` · `/sdd-validate`           |
+| 8 | Cambio         | `/sdd:change <req>` · `/sdd-change <req>`   |
 
 Transversal, no es una novena fase: `/sdd:docs
 <prd|trd|acceptance|changes|delivery|schema|flow|ux> [feature]` genera un
@@ -204,13 +221,22 @@ documento derivado de los artefactos, tras aprobar una propuesta.
 
 ### Lecciones de tests
 
-- Un fixture/trait que haga `DROP`/`CREATE` sobre un recurso de nombre fijo (BD, archivo) debe sufijarlo con un identificador por proceso (`getmypid()`) si los tests corren en paralelo (paratest).
-- Un test que resetea un singleton/global compartido (conexión de BD, config) debe restaurar el doble de test en `tearDown`, no dejarlo en `null`: con orden aleatorio, los tests siguientes intentarían conectar al recurso real. "Pasa en local" no prueba nada si local tiene el recurso real; para reproducir CI corre sin `.env`/`.env.testing` y con `--order-by=default`.
-- Nunca calcules la fecha límite de un test con `date()`/`strtotime()` para compararla contra `NOW()`/`CURDATE()` de la BD: el reloj/timezone del proceso y el del servidor de BD pueden diferir. Usa una expresión SQL (`NOW() - INTERVAL 1 HOUR`).
+- Un fixture/trait que haga `DROP`/`CREATE` sobre un recurso de nombre fijo (BD, archivo) debe sufijarlo con un
+  identificador por proceso (`getmypid()`) si los tests corren en paralelo (paratest).
+- Un test que resetea un singleton/global compartido (conexión de BD, config) debe restaurar el doble de test en
+  `tearDown`, no dejarlo en `null`: con orden aleatorio, los tests siguientes intentarían conectar al recurso real.
+  "Pasa en local" no prueba nada si local tiene el recurso real; para reproducir CI corre sin `.env`/`.env.testing` y
+  con `--order-by=default`.
+- Nunca calcules la fecha límite de un test con `date()`/`strtotime()` para compararla contra `NOW()`/`CURDATE()` de la
+  BD: el reloj/timezone del proceso y el del servidor de BD pueden diferir. Usa una expresión SQL
+  (`NOW() - INTERVAL 1 HOUR`).
 
 ### Lecciones de Laravel
 
-- `Schema::getColumns()` devuelve `default` como el string `'NULL'` (no `null`) en MariaDB para una columna sin default; un `->toBeNull()` en un test de schema falla aunque el esquema esté bien. Usa `->toBeIn([null, 'NULL'])` o, mejor, un assert de comportamiento (insertar sin la columna y leer). Vigila que `ADD col ... DEFAULT 0` rellena las filas existentes con `0`, corrupción silenciosa donde `NULL` significa "sin valor".
+- `Schema::getColumns()` devuelve `default` como el string `'NULL'` (no `null`) en MariaDB para una columna sin default;
+  un `->toBeNull()` en un test de schema falla aunque el esquema esté bien. Usa `->toBeIn([null, 'NULL'])` o, mejor, un
+  assert de comportamiento (insertar sin la columna y leer). Vigila que `ADD col ... DEFAULT 0` rellena las filas
+  existentes con `0`, corrupción silenciosa donde `NULL` significa "sin valor".
 
 ### Lecciones de UI
 

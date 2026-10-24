@@ -28,6 +28,9 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
   define su moneda y muestra el total pendiente con formato decimal preciso.
 - **Compra semanal.** Reiniciar las compras (con deshacer), duplicar una lista
   como plantilla y copiarla como texto plano para pegarla en un mensaje.
+- **Armar y planear la lista.** Reordenar los pendientes arrastrando el asa o
+  con botones subir/bajar, autocompletar nombres desde los ítems de la propia
+  lista y fijar un presupuesto opcional que avisa cuánto se excede.
 - **Cantidad editable.** La cantidad se puede indicar al agregar un ítem o
   corregir después desde la lista.
 - **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla

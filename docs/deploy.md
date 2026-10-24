@@ -194,6 +194,11 @@ conteo. Sin `--before` aborta.
       `/offline` mínima.
 - [ ] Demo en dos celulares: agregar / marcar / editar / borrar un ítem en uno y
       verlo en el otro en ≤ 5 s.
+- [ ] Tras el despliegue de 1.4.0: la migración de `items.position` y
+      `shopping_lists.budget` se aplicó (`php artisan migrate:status`) y las listas
+      existentes se ven en el mismo orden de antes.
+- [ ] Reordenar un ítem en un celular (arrastrando el asa) y verlo en el otro en
+      ≤ 5 s; fijar un presupuesto y ver el aviso al pasarse.
 - [ ] `GET /robots.txt` contiene `Disallow: /l/`; `GET /l/{slug}` responde con
       `X-Robots-Tag: noindex, nofollow`.
 
