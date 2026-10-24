@@ -32,10 +32,10 @@ it('adds a nullable price column typed as decimal(10,2)', function () {
         ->and($price['default'])->toBeIn([null, 'NULL']);
 });
 
-it('indexes items by (shopping_list_id, version) and (shopping_list_id, is_purchased, created_at)', function () {
+it('indexes items by (shopping_list_id, version) and (shopping_list_id, is_purchased, position)', function () {
     $indexes = collect(Schema::getIndexes('items'))
         ->map(fn (array $index) => array_map('strtolower', $index['columns']));
 
     expect($indexes)->toContain(['shopping_list_id', 'version'])
-        ->and($indexes)->toContain(['shopping_list_id', 'is_purchased', 'created_at']);
+        ->and($indexes)->toContain(['shopping_list_id', 'is_purchased', 'position']);
 });

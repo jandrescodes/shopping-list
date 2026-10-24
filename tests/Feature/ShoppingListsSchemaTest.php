@@ -12,6 +12,7 @@ it('creates the shopping_lists table with the expected columns', function () {
         'slug',
         'name',
         'currency',
+        'budget',
         'version',
         'created_at',
         'updated_at',
@@ -28,6 +29,15 @@ it('adds a currency column of five characters defaulting to Bs', function () {
         ->and(preg_replace('/\s+/', '', $currency['type']))->toBe('varchar(5)')
         ->and($currency['nullable'])->toBeFalse()
         ->and($currency['default'])->toBeIn(['Bs', "'Bs'"]);
+});
+
+it('adds a nullable budget column typed as decimal(10,2) without a default', function () {
+    $budget = collect(Schema::getColumns('shopping_lists'))->firstWhere('name', 'budget');
+
+    expect($budget)->not->toBeNull()
+        ->and(preg_replace('/\s+/', '', $budget['type']))->toBe('decimal(10,2)')
+        ->and($budget['nullable'])->toBeTrue()
+        ->and($budget['default'])->toBeIn([null, 'NULL']);
 });
 
 it('defaults the version counter to zero', function () {
