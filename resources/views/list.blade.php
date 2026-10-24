@@ -85,7 +85,7 @@
                 {{-- Opciones de la lista: un solo botón en el encabezado. Los
                      ítems son botones normales (patrón disclosure, sin
                      role="menu", que exigiría navegación con flechas). --}}
-                <div class="relative shrink-0" x-show="!editingName && !editingCurrency"
+                <div class="relative shrink-0" x-show="!editingName && !editingCurrency && !editingBudget"
                     x-on:click.outside="menuOpen = false" x-on:keydown.escape="menuOpen = false; $refs.menuButton.focus()">
                     <button id="list-menu-button" x-ref="menuButton" type="button" x-on:click="menuOpen = !menuOpen"
                         :aria-expanded="menuOpen" aria-controls="list-menu" aria-label="Opciones de la lista"
@@ -109,6 +109,13 @@
                             class="flex min-h-11 w-full items-center justify-between gap-2 px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
                             <span>Moneda</span>
                             <span id="currency-chip" class="font-semibold" x-text="currency">{{ $list->currency }}</span>
+                        </button>
+                        <button type="button"
+                            x-on:click="menuOpen = false; editingBudget = true; $nextTick(() => $refs.budgetInput.focus())"
+                            :aria-label="'Cambiar el presupuesto de la lista (actual: ' + budgetLabel + ')'"
+                            class="flex min-h-11 w-full items-center justify-between gap-2 px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
+                            <span>Presupuesto</span>
+                            <span id="budget-chip" class="font-semibold" x-text="budgetLabel">Sin definir</span>
                         </button>
                         <button type="button" x-on:click="menuOpen = false; copyAsText()"
                             class="flex min-h-11 w-full items-center px-4 text-left text-sm text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-500">
@@ -145,6 +152,25 @@
                         Guardar
                     </button>
                     <button type="button" x-on:click="editingCurrency = false; $nextTick(() => $refs.menuButton.focus())"
+                        class="min-h-11 shrink-0 rounded-lg px-3 text-sm text-gray-500 hover:text-red-600">
+                        Cancelar
+                    </button>
+                </form>
+
+                {{-- Budget: same inline pattern as the currency. Leaving it
+                     blank removes the budget. --}}
+                <form class="flex min-w-0 basis-full flex-wrap items-center gap-2 sm:basis-auto" x-show="editingBudget"
+                    style="display:none"
+                    x-on:submit.prevent="saveBudget($refs.budgetInput.value).then(() => { if (!editingBudget) $nextTick(() => $refs.menuButton.focus()) })">
+                    <label for="budget-input" class="sr-only">Presupuesto de la lista (vacío lo quita)</label>
+                    <input id="budget-input" x-ref="budgetInput" name="budget" type="text" inputmode="decimal"
+                        maxlength="11" :value="budget ?? ''" autocomplete="off" :placeholder="'Monto en ' + currency"
+                        class="w-32 min-w-0 rounded-lg border border-gray-300 min-h-11 px-2 py-1 text-base focus:border-blue-500 focus:outline-2 focus:outline-blue-500">
+                    <button type="submit"
+                        class="shrink-0 rounded-lg bg-blue-600 min-h-11 px-3 text-sm font-semibold text-white">
+                        Guardar
+                    </button>
+                    <button type="button" x-on:click="editingBudget = false; $nextTick(() => $refs.menuButton.focus())"
                         class="min-h-11 shrink-0 rounded-lg px-3 text-sm text-gray-500 hover:text-red-600">
                         Cancelar
                     </button>
@@ -189,9 +215,28 @@
         <form class="mb-4 space-y-2" x-on:submit.prevent="addItem($event)">
             <div class="flex gap-2">
                 <label for="new-item" class="sr-only">Nombre del ítem</label>
-                <input id="new-item" x-ref="newItem" name="name" type="text" maxlength="100" required
-                    autocomplete="off" placeholder="Agregar ítem…"
-                    class="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-2 focus:outline-blue-500">
+                <div class="relative min-w-0 flex-1">
+                    <input id="new-item" x-ref="newItem" name="name" type="text" maxlength="100" required
+                        autocomplete="off" placeholder="Agregar ítem…" x-model="newName"
+                        role="combobox" aria-autocomplete="list" aria-controls="name-suggestions"
+                        :aria-expanded="showSuggestions" :aria-activedescendant="activeSuggestionId"
+                        x-on:input="openSuggestions()" x-on:keydown.down.prevent="moveSuggestion(1)"
+                        x-on:keydown.up.prevent="moveSuggestion(-1)" x-on:keydown.enter="pickActiveSuggestion($event)"
+                        x-on:keydown.escape="closeSuggestions()" x-on:blur="closeSuggestions()"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-2 focus:outline-blue-500">
+                    {{-- Rows keep the focus in the input (mousedown.prevent): a
+                         touch or click picks the name without closing the keyboard. --}}
+                    <ul id="name-suggestions" role="listbox" aria-label="Sugerencias" x-show="showSuggestions" x-cloak
+                        style="display:none"
+                        class="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
+                        <template x-for="(name, index) in suggestions" :key="name">
+                            <li role="option" :id="'suggestion-' + index" :aria-selected="index === activeSuggestion"
+                                x-text="name" x-on:mousedown.prevent x-on:click="pickSuggestion(name)"
+                                :class="index === activeSuggestion ? 'bg-blue-50 text-blue-800' : ''"
+                                class="flex min-h-11 cursor-pointer items-center px-3 hover:bg-gray-100"></li>
+                        </template>
+                    </ul>
+                </div>
                 <button type="submit" class="shrink-0 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white">
                     Agregar
                 </button>
@@ -285,12 +330,16 @@
             </div>
         @endif
 
+        <p id="move-announcement" role="status" class="sr-only" x-text="moveAnnouncement"></p>
+
         {{-- Client-rendered list. All user content bound with x-text. --}}
         <ul id="client-item-list" class="divide-y divide-gray-200 rounded-lg border border-gray-200" x-show="ready"
-            x-cloak style="display:none">
+            x-cloak style="display:none" x-sort="onSort($item, $position)"
+            x-sort:config="{ draggable: '[data-pending]' }">
             <template x-for="item in items" :key="item.id">
-                <li class="grid grid-cols-[2rem_minmax(0,1fr)_auto_2rem] gap-x-2 px-3 py-2 transition-colors duration-300"
-                    :data-item-id="item.id" :class="item.is_purchased ? 'text-gray-500' : ''">
+                <li class="grid grid-cols-[2rem_minmax(0,1fr)_auto_auto] gap-x-2 px-3 py-2 transition-colors duration-300"
+                    :data-item-id="item.id" :data-pending="item.is_purchased ? null : ''" x-sort:item="item.id"
+                    :class="item.is_purchased ? 'text-gray-500' : ''">
                     <label
                         class="col-start-1 row-span-2 row-start-1 -my-2 -ml-3 flex w-11 shrink-0 cursor-pointer justify-center">
                         <input type="checkbox" class="mt-4.5 size-6 rounded border-gray-300 accent-blue-600"
@@ -359,11 +408,40 @@
                             class="item-quantity relative rounded-lg bg-gray-100 px-2 py-1 font-medium text-gray-600 before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500"></span>
                         <span x-show="item.added_by" x-text="item.added_by" class="text-gray-500"></span>
                     </div>
-                    <button type="button" x-on:click="removeItem(item)"
-                        class="col-start-4 row-start-1 -mr-3 flex min-h-11 min-w-11 items-center justify-center text-lg leading-none text-gray-500 hover:text-red-600"
-                        :aria-label="'Eliminar ' + item.name">
-                        &times;
-                    </button>
+                    <div class="col-start-4 row-start-1 -mr-3 flex items-center">
+                        <button type="button" x-sort:handle x-show="!item.is_purchased && pendingCount > 1"
+                            :aria-label="'Mover ' + item.name"
+                            class="flex min-h-11 min-w-11 touch-none items-center justify-center text-gray-500 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path
+                                    d="M7 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm-1.5 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM16 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm-1.5 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM16 16a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                            </svg>
+                        </button>
+                        <button type="button" x-on:click="removeItem(item)"
+                            class="flex min-h-11 min-w-11 items-center justify-center text-lg leading-none text-gray-500 hover:text-red-600"
+                            :aria-label="'Eliminar ' + item.name">
+                            &times;
+                        </button>
+                    </div>
+                    <div x-show="!item.is_purchased && pendingCount > 1"
+                        class="col-start-4 row-start-2 -mr-3 flex items-center">
+                        <button type="button" data-move="-1" x-on:click="moveItem(item, -1)"
+                            :disabled="pendingIndex(item) === 0"
+                            :aria-label="'Subir ' + item.name"
+                            class="flex min-h-11 min-w-11 items-center justify-center text-gray-500 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500 disabled:text-gray-300 disabled:hover:text-gray-300">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M14.77 12.79a.75.75 0 0 1-1.06-.02L10 8.832 6.29 12.77a.75.75 0 1 1-1.08-1.04l4.25-4.5a.75.75 0 0 1 1.08 0l4.25 4.5a.75.75 0 0 1-.02 1.06Z" />
+                            </svg>
+                        </button>
+                        <button type="button" data-move="1" x-on:click="moveItem(item, 1)"
+                            :disabled="pendingIndex(item) === pendingCount - 1"
+                            :aria-label="'Bajar ' + item.name"
+                            class="flex min-h-11 min-w-11 items-center justify-center text-gray-500 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500 disabled:text-gray-300 disabled:hover:text-gray-300">
+                            <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" />
+                            </svg>
+                        </button>
+                    </div>
                 </li>
             </template>
             <li x-show="items.length === 0"
@@ -387,6 +465,16 @@
             <span class="text-lg font-semibold text-gray-900 tabular-nums"
                 x-text="currency + ' ' + formattedPendingTotal"></span>
         </div>
+
+        <div id="budget-line" class="mt-1 flex items-baseline justify-end gap-2 text-sm text-gray-600"
+            x-show="ready && budget !== null" x-cloak style="display:none">
+            <span>Presupuesto</span>
+            <span class="font-semibold text-gray-900 tabular-nums" x-text="budgetLabel"></span>
+        </div>
+        <p id="budget-alert" role="status"
+            class="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-right text-sm font-semibold text-orange-900"
+            x-show="ready && excessCents > 0" x-cloak style="display:none"
+            x-text="'Te pasas por ' + currency + ' ' + formattedExcess"></p>
 
         @if ($items->contains('is_purchased', true))
             <div class="mt-4" x-show="hasPurchased">

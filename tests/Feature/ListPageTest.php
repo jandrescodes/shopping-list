@@ -35,6 +35,16 @@ it('orders items with purchased ones struck through and last (RF-18)', function 
     expect($html)->toMatch('/line-through[^>]*>Comprado</');
 });
 
+it('lists pending items in position order, not creation order', function () {
+    $list = ShoppingList::factory()->create();
+    Item::factory()->for($list)->create(['name' => 'Segundo', 'position' => 2048]);
+    Item::factory()->for($list)->create(['name' => 'Primero', 'position' => 1024]);
+
+    $html = $this->get("/l/{$list->slug}")->assertOk()->getContent();
+
+    expect(strpos($html, 'Primero'))->toBeLessThan(strpos($html, 'Segundo'));
+});
+
 it('shows an empty state when the list has no items', function () {
     $list = ShoppingList::factory()->create();
 
@@ -95,7 +105,7 @@ it('shows the price beside its item and no marker when the item has none (RF-8)'
     // Counted over the server-rendered rows only: the Alpine row lives in a
     // <template> (a possibility, not a rendered item), so it would double
     // the count for every list regardless of its data.
-    $serverHtml = substr($html, 0, strpos($html, '<template'));
+    $serverHtml = substr($html, 0, strpos($html, '<template x-for="item in items"'));
     expect(substr_count($serverHtml, 'item-price'))->toBe(1);
 });
 

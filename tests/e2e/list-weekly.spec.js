@@ -105,6 +105,32 @@ test.describe('exportar como texto', () => {
         expect(text.split('\n').at(-1)).toBe(`Total pendiente: ${shown}`);
     });
 
+    test('sigue el orden manual, pendientes primero, y no incluye el presupuesto', async ({ page, request, context }) => {
+        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        const slug = await createList(request);
+        const milk = await addItem(request, slug, { name: 'Leche', price: 10 });
+        const bread = await addItem(request, slug, { name: 'Pan' });
+        const rice = await addItem(request, slug, { name: 'Arroz', price: 4 });
+        const eggs = await addItem(request, slug, { name: 'Huevos' });
+        await request.patch(`/api/lists/${slug}/items/${rice.id}/position`, { data: { before_id: milk.id } });
+        await request.patch(`/api/lists/${slug}/items/${eggs.id}/position`, { data: { before_id: bread.id } });
+        await request.patch(`/api/lists/${slug}/items/${milk.id}`, { data: { is_purchased: true } });
+        expect((await request.patch(`/api/lists/${slug}`, { data: { budget: '50' } })).ok()).toBeTruthy();
+        await openList(page, slug);
+
+        await chooseCopyAsText(page);
+
+        await expect(page.locator('#export-notice')).toBeVisible();
+        expect(await readClipboard(page)).toBe([
+            'Compra semanal',
+            '- [ ] Arroz — 4,00',
+            '- [ ] Huevos',
+            '- [ ] Pan',
+            '- [x] Leche — 10,00',
+            'Total pendiente: Bs 4,00',
+        ].join('\n'));
+    });
+
     test('sin permiso de portapapeles muestra el texto seleccionado para copiar a mano', async ({ page, request }) => {
         const slug = await createList(request);
         await addItem(request, slug, { name: 'Leche', quantity: '2', price: 12.5 });
@@ -351,13 +377,14 @@ test.describe('menú de opciones', () => {
         await expect(page.locator('#list-menu')).toBeVisible();
 
         const visited = [];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 7; i++) {
             await page.keyboard.press('Tab');
             visited.push((await page.evaluate(() => document.activeElement.textContent)).trim());
         }
-        expect(visited.slice(0, 5)).toEqual([
+        expect(visited.slice(0, 6)).toEqual([
             'Renombrar',
             expect.stringContaining('Moneda'),
+            expect.stringContaining('Presupuesto'),
             'Copiar como texto',
             'Duplicar lista',
             'Reiniciar compras',
@@ -367,5 +394,52 @@ test.describe('menú de opciones', () => {
 
         await expect(page.locator('#list-menu')).toBeHidden();
         await expect(page.locator('#list-menu-button')).toBeFocused();
+    });
+});
+
+test.describe('duplicar y exportar con presupuesto y orden manual', () => {
+    test('la copia conserva el presupuesto y el orden manual de la original', async ({ page, request }) => {
+        const slug = await createList(request, 'Compra semanal');
+        await addItem(request, slug, { name: 'Pan', price: 4 });
+        await addItem(request, slug, { name: 'Leche', price: 12 });
+        const eggs = await addItem(request, slug, { name: 'Huevos', price: 6 });
+        const items = (await (await request.get(`/api/lists/${slug}/items`)).json()).items;
+        const moved = await request.patch(`/api/lists/${slug}/items/${eggs.id}/position`, { data: { before_id: items[0].id } });
+        expect(moved.ok()).toBeTruthy();
+        const budget = await request.patch(`/api/lists/${slug}`, { data: { budget: 20 } });
+        expect(budget.ok()).toBeTruthy();
+        await openList(page, slug);
+
+        await chooseDuplicate(page);
+
+        await expect(page).toHaveURL(new RegExp(`/l/(?!${slug}$)[A-Za-z0-9_-]+$`));
+        const rows = page.locator('#client-item-list > li[data-item-id]');
+        await expect(rows).toHaveCount(3);
+        const texts = await rows.allInnerTexts();
+        expect(['Huevos', 'Pan', 'Leche'].map((name, i) => texts[i].includes(name))).toEqual([true, true, true]);
+        await expect(page.locator('#budget-line')).toContainText('Bs 20,00');
+        await expect(page.locator('#budget-alert')).toHaveText('Te pasas por Bs 2,00');
+
+        const copy = (await (await request.get(`/api/lists/${slugOf(page)}`)).json());
+        expect(copy.budget).toBe('20.00');
+        const original = (await (await request.get(`/api/lists/${slug}`)).json());
+        expect(original.budget).toBe('20.00');
+    });
+
+    test('el texto exportado no incluye el presupuesto', async ({ page, request, context }) => {
+        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        const slug = await createList(request);
+        await addItem(request, slug, { name: 'Leche', price: 12.5 });
+        await request.patch(`/api/lists/${slug}`, { data: { budget: 10 } });
+        await openList(page, slug);
+
+        await chooseCopyAsText(page);
+
+        await expect(page.locator('#export-notice')).toContainText('Lista copiada');
+        expect(await readClipboard(page)).toBe([
+            'Compra semanal',
+            '- [ ] Leche — 12,50',
+            'Total pendiente: Bs 12,50',
+        ].join('\n'));
     });
 });
