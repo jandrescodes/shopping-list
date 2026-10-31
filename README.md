@@ -31,6 +31,10 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
 - **Armar y planear la lista.** Reordenar los pendientes arrastrando el asa o
   con botones subir/bajar, autocompletar nombres desde los ítems de la propia
   lista y fijar un presupuesto opcional que avisa cuánto se excede.
+- **Compartir por Web Share y QR.** Compartir el enlace con la hoja nativa,
+  copiarlo o mostrar un código QR centrado para abrir la lista en otro celular.
+  El QR se genera en el navegador, sin peticiones nuevas, y su botón es
+  operable por teclado.
 - **Cantidad editable.** La cantidad se puede indicar al agregar un ítem o
   corregir después desde la lista.
 - **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla
@@ -44,14 +48,14 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
 
 ## Stack
 
-| Capa         | Tecnología                                   |
-| ------------ | -------------------------------------------- |
-| Backend      | PHP 8.2, Laravel 12, API REST                |
-| Persistencia | MySQL vía Eloquent                           |
-| Frontend     | Blade + Alpine.js, empaquetado con Vite      |
-| PWA          | `manifest.json` + service worker (`sw.js`)   |
-| Sync         | Polling HTTP con cursor opaco                |
-| Tests        | Pest 3.8 (API), Playwright (capa de cliente) |
+| Capa         | Tecnología                                         |
+| ------------ | -------------------------------------------------- |
+| Backend      | PHP 8.2, Laravel 12, API REST                      |
+| Persistencia | MySQL vía Eloquent                                 |
+| Frontend     | Blade + Alpine.js + `qrcode`, empaquetado con Vite |
+| PWA          | `manifest.json` + service worker (`sw.js`)         |
+| Sync         | Polling HTTP con cursor opaco                      |
+| Tests        | Pest 3.8 (API), Playwright + axe-core (cliente)    |
 
 ## Requisitos
 
@@ -107,7 +111,7 @@ app/Models/                  ShoppingList, Item
 routes/api.php               Endpoints de la API
 resources/js/app.js           Bootstrap global + registro del service worker
 resources/js/home.js          Glue de la home (crear lista, "mis listas")
-resources/js/list.js          Cliente Alpine (edición, polling, reiniciar, duplicar, copiar como texto)
+resources/js/list.js          Cliente Alpine (edición, polling, compartir, QR y acciones de lista)
 resources/js/throttle.js      Texto compartido del 429 al crear listas
 resources/views/             Vistas Blade
 public/manifest.json         Manifest PWA

@@ -81,6 +81,15 @@
   falta la comprobación en dos celulares reales.
   → `specs/004-armar-y-planear-la-lista/`
 
+- **Compartir con Web Share API y QR** — feature completa (T0-T5 + cierre),
+  versión **1.5.0**. Añade el QR centrado del enlace absoluto, generado en el
+  cliente sin peticiones, con botón mostrar/ocultar accesible, y conserva sin
+  cambios el compartir por Web Share, portapapeles o URL en claro. Validada RF
+  por RF en `specs/005-compartir-web-share-y-qr/validation.md` (267 Pest, 118
+  Playwright, `pint --test` y axe en 375/1280 px en verde). Pendiente la
+  comprobación manual en dos celulares reales.
+  → `specs/005-compartir-web-share-y-qr/`
+
 ## Siguiente 🔜
 
 _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
@@ -90,8 +99,6 @@ _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
 Por orden de valor. Todas caben en el hosting compartido sin colas ni procesos
 persistentes.
 
-- **Compartir con Web Share API y QR** — `navigator.share` además de copiar el
-  enlace; QR para pasar la lista a otro celular en casa.
 - **Limpieza de listas abandonadas** — comando `lists:purge-inactive` (p. ej.
   12 meses sin cambios), ejecutado con el cron de hPanel. Verificar antes que
   el plan de hosting permite cron.

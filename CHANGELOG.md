@@ -5,6 +5,18 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.5.0] - 2026-10-31
+
+### Añadido
+
+- **Código QR para compartir.** La vista de lista muestra un QR centrado del
+  enlace absoluto, generado en el cliente y sin peticiones de red. El botón
+  alterna entre «Mostrar QR» y «Ocultar QR», es operable por teclado y conserva
+  el comportamiento existente de «Compartir enlace» mediante Web Share,
+  portapapeles o URL en claro.
+- Dependencias exactas `qrcode` 1.5.4 y `@axe-core/playwright` 4.14.0 para
+  generar y verificar el código QR.
+
 ## [1.4.0] - 2026-10-24
 
 ### Añadido
@@ -36,7 +48,7 @@ y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
 - `items.position` (`BIGINT`, huecos de 1024) y `shopping_lists.budget`
   (`DECIMAL(10,2)` nulo): dos migraciones nuevas. **Exigen `php artisan
-  migrate` en producción tras el despliegue.** La migración de `position`
+migrate` en producción tras el despliegue.** La migración de `position`
   rellena el orden previo (creación e id) antes de exigir `NOT NULL`.
 - El orden de los ítems deja de ser «por fecha de creación»: es `position`.
 - Service worker `CACHE_VERSION` `v4` → `v5`.

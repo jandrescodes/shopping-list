@@ -59,6 +59,11 @@ componentes).
 - **Aviso de presupuesto.** `#budget-alert` usa `bg-orange-50` con texto
   `text-orange-900` y el importe escrito («Te pasas por Bs 5,00»): no depende
   solo del color y no reutiliza los fondos reservados.
+- **Compartir y QR.** El botón `#show-qr` se mantiene junto a «Compartir
+  enlace», alterna «Mostrar QR»/«Ocultar QR» y expone `aria-expanded`. El
+  contenedor `#qr-code` centra el canvas, no repite la URL debajo y usa un
+  nombre accesible para el código. Ambos controles conservan targets mínimos
+  de 44 px y deben funcionar con teclado.
 - **Un solo aviso de conexión.** `showOfflineNotice` (`list.js`) oculta el
   aviso ámbar mientras el error visible es el de escritura sin red, que ya
   dice "Sin conexión"; así no se apilan dos avisos casi iguales en mobile.
@@ -66,8 +71,9 @@ componentes).
   (tailwindcss-intellisense lo marca).
 - **Verificación visual y de accesibilidad.** axe-core (`wcag2a`, `wcag2aa`,
   `wcag21aa`) a 375 y 1280px, con las transiciones CSS desactivadas, más una
-  pasada de teclado (orden de Tab, foco visible, foco tras cada acción). Instala
-  axe fuera del proyecto: no es dependencia. Crear listas de prueba choca con
+  pasada de teclado (orden de Tab, foco visible, foco tras cada acción). La
+  integración e2e usa `@axe-core/playwright` como dependencia de desarrollo
+  pineada. Crear listas de prueba choca con
   `lists-create` (10 por hora por IP en dev): reutiliza una existente en modo
   lectura y borra las tuyas por su marker.
 - **Formateador del IDE.** Debe respetar Pint: uno distinto reescribió

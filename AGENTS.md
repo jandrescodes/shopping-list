@@ -148,7 +148,7 @@ Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
   (`#export-notice`, lista copiada como texto) y `bg-orange-50`
   (`#budget-alert`, presupuesto excedido). Otros `id` reservados:
   `#budget-line`, `#budget-chip`, `#budget-input`, `#move-announcement`,
-  `#name-suggestions`.
+  `#name-suggestions`, `#show-qr`, `#qr-code`.
 - **Tests táctiles**: `Input.synthesizeScrollGesture` no scrollea en Chromium
   headless; los gestos de `list-order.spec.js` usan
   `Input.dispatchTouchEvent` (start, moves, end) con `hasTouch` e `isMobile`.
@@ -191,16 +191,16 @@ Una feature no está cerrada hasta que existen sus cuatro archivos.
 
 ### Fases
 
-| # | Fase           | Comando (plugin · script)                   |
-|---|----------------|---------------------------------------------|
-| 1 | Constitución   | `/sdd:constitution` · `/sdd-constitution`   |
-| 2 | Especificación | `/sdd:spec` · `/sdd-spec`                   |
-| 3 | Clarificación  | `/sdd:clarify` · `/sdd-clarify`             |
-| 4 | Planificación  | `/sdd:plan` · `/sdd-plan`                   |
-| 5 | Tareas         | `/sdd:tasks` · `/sdd-tasks`                 |
-| 6 | Implementación | `/sdd:implement <n>` · `/sdd-implement <n>` |
-| 7 | Validación     | `/sdd:validate` · `/sdd-validate`           |
-| 8 | Cambio         | `/sdd:change <req>` · `/sdd-change <req>`   |
+| #   | Fase           | Comando (plugin · script)                   |
+| --- | -------------- | ------------------------------------------- |
+| 1   | Constitución   | `/sdd:constitution` · `/sdd-constitution`   |
+| 2   | Especificación | `/sdd:spec` · `/sdd-spec`                   |
+| 3   | Clarificación  | `/sdd:clarify` · `/sdd-clarify`             |
+| 4   | Planificación  | `/sdd:plan` · `/sdd-plan`                   |
+| 5   | Tareas         | `/sdd:tasks` · `/sdd-tasks`                 |
+| 6   | Implementación | `/sdd:implement <n>` · `/sdd-implement <n>` |
+| 7   | Validación     | `/sdd:validate` · `/sdd-validate`           |
+| 8   | Cambio         | `/sdd:change <req>` · `/sdd-change <req>`   |
 
 Transversal, no es una novena fase: `/sdd:docs
 <prd|trd|acceptance|changes|delivery|schema|flow|ux> [feature]` genera un
