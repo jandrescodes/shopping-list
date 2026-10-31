@@ -182,6 +182,10 @@
                     class="inline-flex min-h-11 items-center font-medium text-blue-700 underline focus-visible:outline-2 focus-visible:outline-blue-500">
                     Compartir enlace
                 </button>
+                <button id="show-qr" type="button" x-on:click="toggleQr()" x-bind:aria-expanded="qrOpen"
+                    class="inline-flex min-h-11 items-center font-medium text-blue-700 underline focus-visible:outline-2 focus-visible:outline-blue-500">
+                    <span x-text="qrOpen ? 'Ocultar QR' : 'Mostrar QR'">Mostrar QR</span>
+                </button>
                 <button type="button" x-show="inMyLists" x-on:click="forgetList()"
                     class="inline-flex min-h-11 items-center text-gray-500 underline hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-500">
                     Quitar de mis listas
@@ -190,6 +194,14 @@
                     Quitada de tus listas en este dispositivo.
                 </span>
             </p>
+
+            {{-- QR del enlace: se genera en el cliente con canvas. --}}
+            <div class="mt-2 flex justify-center" x-show="qrOpen" x-cloak style="display:none">
+                <div id="qr-code" class="inline-block rounded-lg border border-gray-200 bg-white p-3">
+                    <canvas x-ref="qrCanvas" class="block" role="img"
+                        aria-label="Código QR del enlace de la lista"></canvas>
+                </div>
+            </div>
 
             <div x-show="confirmingDelete" style="display:none"
                 class="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm" role="alertdialog"

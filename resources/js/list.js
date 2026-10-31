@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import sort from '@alpinejs/sort';
+import QRCode from 'qrcode';
 import { throttledListsMessage } from './throttle.js';
 
 // Shopping list view logic (Alpine component). Reactive rendering uses x-text
@@ -176,6 +177,7 @@ document.addEventListener('alpine:init', () => {
         exportNotice: '',
         exportFallback: '',
         exportNoticeTimer: null,
+        qrOpen: false,
 
         init() {
             this.slug = this.$el.dataset.slug;
@@ -261,6 +263,43 @@ document.addEventListener('alpine:init', () => {
                 this.shareNoticeTimer = setTimeout(() => { this.shareNotice = ''; }, 5000);
             } catch (e) {
                 this.shareUrl = url; // last resort: let them select and copy it
+            }
+        },
+
+        // QR of the list's absolute URL, generated in the client with the
+        // `qrcode` library (browser build) on a <canvas> — no API call, works
+        // offline. Shown so another phone can scan it instead of typing the
+        // slug. Same client-side boundary as shareList().
+        renderQr() {
+            const canvas = this.$refs.qrCanvas;
+
+            if (!canvas) {
+                return;
+            }
+
+            const url = `${window.location.origin}/l/${this.slug}`;
+
+            canvas.dataset.qrEncoded = url;
+            // How many times the code has been drawn; lets an e2e test tell a
+            // regeneration from a code that was simply already on screen (the
+            // pixels are identical when only the name changed).
+            canvas.dataset.qrRenders = String((Number(canvas.dataset.qrRenders) || 0) + 1);
+
+            QRCode.toCanvas(canvas, url, {
+                errorCorrectionLevel: 'M',
+                margin: 4,
+                scale: 6,
+            }).catch(() => {
+                // URL too long to encode: leave the container empty rather than
+                // show a broken code
+            });
+        },
+
+        toggleQr() {
+            this.qrOpen = !this.qrOpen;
+
+            if (this.qrOpen) {
+                this.$nextTick(() => this.renderQr());
             }
         },
 
@@ -431,6 +470,14 @@ document.addEventListener('alpine:init', () => {
                 // resurrect an entry the user just removed.
                 if (renamed && this.inMyLists) {
                     this.rememberList();
+                }
+
+                // An open QR keeps tracking the list it points at: redraw it
+                // when the list changes underneath it. The slug is immutable,
+                // so a rename redraws the same code — the redraw is the
+                // guarantee that a visible QR is never stale.
+                if (renamed && this.qrOpen) {
+                    this.renderQr();
                 }
             }
 
