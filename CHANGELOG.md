@@ -5,6 +5,21 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.6.0] - 2026-11-01
+
+### Añadido
+
+- **Purga de listas abandonadas.** Comando
+  `php artisan lists:purge-inactive`: borra físicamente las listas sin uso ni
+  modificación durante el periodo configurado
+  (`SHOPPING_LIST_INACTIVE_MONTHS`, en meses) junto con todos sus ítems,
+  activos y lápidas, y reporta el conteo. Sin periodo configurado aborta con
+  error; sin listas abandonadas termina en éxito con 0. Cada escritura
+  renueva el `updated_at` de la lista, así que solo se purga lo que nadie ha
+  tocado en el periodo. Lo ejecuta el cron de hPanel (diario a las 03:00); la
+  app no registra scheduler (constitución 5). Sin cambios en el contrato de
+  la API. Validada en `specs/006-limpieza-de-listas-abandonadas/`.
+
 ## [1.5.0] - 2026-10-31
 
 ### Añadido
@@ -327,6 +342,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
+[1.6.0]: https://github.com/jandrescodes/shopping-list/compare/1.5.0...1.6.0
 [1.4.0]: https://github.com/jandrescodes/shopping-list/compare/1.3.0...1.4.0
 [1.2.3]: https://github.com/jandrescodes/shopping-list/compare/1.2.2...1.2.3
 [1.2.2]: https://github.com/jandrescodes/shopping-list/compare/1.2.1...1.2.2

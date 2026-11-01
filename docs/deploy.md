@@ -136,7 +136,8 @@ creados. Queda:
     cd "$D"/app
     cp .env.production.example .env
     php artisan key:generate
-    # editar .env: APP_URL, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+    # editar .env: APP_URL, DB_DATABASE, DB_USERNAME, DB_PASSWORD,
+    # SHOPPING_LIST_INACTIVE_MONTHS
     ```
 
     `APP_URL` = `https://<dominio>`; `DB_*` = los datos de la BD creada
@@ -168,10 +169,14 @@ ssh -p 65002 <user>@<host> "cd <APP_PATH> && php artisan migrate --force && \
   php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize"
 ```
 
-## Mantenimiento manual
+## Mantenimiento
 
-No hay scheduler ni cron. Las lápidas de ítems borrados (`deleted_at` no nulo)
-**no se purgan solas**. Cada cierto tiempo, a mano por SSH:
+No hay scheduler **en la app** (constitución 5); las dos tareas de
+mantenimiento se ejecutan fuera de ella.
+
+### Lápidas de ítems — a mano por SSH
+
+Las lápidas de ítems borrados (`deleted_at` no nulo) **no se purgan solas**. Cada cierto tiempo:
 
 ```bash
 php artisan items:purge-tombstones --before=$(date -d '3 months ago' +%F)
@@ -179,6 +184,16 @@ php artisan items:purge-tombstones --before=$(date -d '3 months ago' +%F)
 
 Borra físicamente (`forceDelete`) las lápidas anteriores a esa fecha y reporta el
 conteo. Sin `--before` aborta.
+
+### Listas abandonadas — cron de hPanel
+
+`php artisan lists:purge-inactive` borra físicamente las listas sin uso ni
+modificación durante `SHOPPING_LIST_INACTIVE_MONTHS` (meses, en el `.env` del
+servidor) junto con todos sus ítems, y reporta el conteo; sin ese valor aborta
+con error. Corre en el job de hPanel ya creado: uid `fGLEKPsN2B`, schedule
+`0 3 * * *`, comando `php <ruta-del-artisan>/lists:purge-inactive`. Si cambias
+el valor en el `.env`, recalcula la config con `php artisan config:cache` (el
+deploy la cachea, pero un cambio manual no).
 
 ## Verificación post-despliegue (manual)
 
@@ -201,6 +216,9 @@ conteo. Sin `--before` aborta.
       ≤ 5 s; fijar un presupuesto y ver el aviso al pasarse.
 - [ ] `GET /robots.txt` contiene `Disallow: /l/`; `GET /l/{slug}` responde con
       `X-Robots-Tag: noindex, nofollow`.
+- [ ] `php artisan lists:purge-inactive` responde `Listas purgadas: 0` (o un
+      conteo) sin el error de `SHOPPING_LIST_INACTIVE_MONTHS`; el job
+      `fGLEKPsN2B` sigue activo en hPanel → Cron Jobs.
 
 ## Monitoreo externo
 

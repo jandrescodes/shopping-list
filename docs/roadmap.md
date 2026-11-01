@@ -90,6 +90,15 @@
   comprobación manual en dos celulares reales.
   → `specs/005-compartir-web-share-y-qr/`
 
+- **Limpieza de listas abandonadas** — feature completa (T0-T3 + cierre),
+  versión **1.6.0** (2026-11-01). Añade el comando `lists:purge-inactive` que borra físicamente las listas sin uso ni
+  modificación durante el periodo configurado (`SHOPPING_LIST_INACTIVE_MONTHS`),
+  abortando si no está; lo ejecuta el cron de hPanel ya verificado (uid
+  `fGLEKPsN2B`, `0 3 * * *`). Validada RF por RF en
+  `specs/006-limpieza-de-listas-abandonadas/validation.md` (veredicto: spec
+  cumplida; 274 Pest y `pint --test` en verde).
+  → `specs/006-limpieza-de-listas-abandonadas/`
+
 ## Siguiente 🔜
 
 _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
@@ -99,9 +108,6 @@ _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
 Por orden de valor. Todas caben en el hosting compartido sin colas ni procesos
 persistentes.
 
-- **Limpieza de listas abandonadas** — comando `lists:purge-inactive` (p. ej.
-  12 meses sin cambios), ejecutado con el cron de hPanel. Verificar antes que
-  el plan de hosting permite cron.
 - **Modo oscuro** — mejora estética, baja prioridad.
 
 Descartado a propósito (no recomendado para una lista familiar en hosting

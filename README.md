@@ -86,14 +86,15 @@ La app queda en `http://localhost:8000`.
 
 ## Comandos
 
-| Acción                 | Comando                                               |
-| ---------------------- | ----------------------------------------------------- |
-| Servidor de desarrollo | `php artisan serve`                                   |
-| Tests API/persistencia | `php artisan test` (Pest 3.8)                         |
-| Tests de navegador     | `npx playwright test`                                 |
-| Lint/formato           | `vendor/bin/pint`                                     |
-| Compilar assets        | `npm run build`                                       |
-| Purgar lápidas         | `php artisan items:purge-tombstones --before=<fecha>` |
+| Acción                  | Comando                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Servidor de desarrollo  | `php artisan serve`                                                           |
+| Tests API/persistencia  | `php artisan test` (Pest 3.8)                                                 |
+| Tests de navegador      | `npx playwright test`                                                         |
+| Lint/formato            | `vendor/bin/pint`                                                             |
+| Compilar assets         | `npm run build`                                                               |
+| Purgar lápidas          | `php artisan items:purge-tombstones --before=<fecha>`                         |
+| Purgar listas inactivas | `php artisan lists:purge-inactive` (requiere `SHOPPING_LIST_INACTIVE_MONTHS`) |
 
 Los tests de API corren contra **MySQL**, no SQLite: copia
 `.env.testing.example` a `.env.testing`, crea la BD `shopping_list_testing` y
