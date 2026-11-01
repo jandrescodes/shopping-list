@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -38,6 +40,16 @@ class ShoppingList extends Model
     public function items(): HasMany
     {
         return $this->hasMany(Item::class);
+    }
+
+    /**
+     * Lists without usage or modification activity since `$cutoff`: writing
+     * through Eloquent renews `updated_at` on the parent list, so the column
+     * reflects the last modification (read-only visits leave it untouched).
+     */
+    public function scopeInactiveSince(Builder $query, CarbonInterface $cutoff): Builder
+    {
+        return $query->where('updated_at', '<', $cutoff);
     }
 
     protected static function booted(): void
