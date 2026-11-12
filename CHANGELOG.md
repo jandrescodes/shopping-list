@@ -5,6 +5,25 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.6.1] - 2026-11-12
+
+### Cambiado
+
+- **Orden de los ítems.** El cálculo de posiciones al mover o renumerar salió
+  de `ShoppingList` a `App\Support\ItemOrdering`, una clase pura que trabaja
+  sobre los ítems ya cargados y se prueba sin base de datos. Sin cambios en
+  el comportamiento ni en la API; el movimiento hace una consulta de lectura
+  en vez de varias.
+- **Herramientas.** Larastan (nivel 5, sin baseline) corre en CI; Dependabot
+  propone actualizaciones semanales de actions, composer y npm; en desarrollo
+  y tests `Model::shouldBeStrict()` falla ante lazy loading o atributos
+  descartados en silencio.
+
+### Seguridad
+
+- Actualizados `symfony/http-foundation`, `http-kernel`, `routing` y `yaml` a
+  7.4.23 para cerrar los avisos que reportaba `composer audit`.
+
 ## [1.6.0] - 2026-11-01
 
 ### Añadido
@@ -342,6 +361,7 @@ compartida" (spec, plan, tareas y validación en `specs/001-lista-compras-famili
   `users`/`sessions`/`password_reset_tokens`/`personal_access_tokens`/`jobs`,
   dependencia `laravel/sanctum` y ruta `GET /user` (RF-30).
 
+[1.6.1]: https://github.com/jandrescodes/shopping-list/compare/1.6.0...1.6.1
 [1.6.0]: https://github.com/jandrescodes/shopping-list/compare/1.5.0...1.6.0
 [1.4.0]: https://github.com/jandrescodes/shopping-list/compare/1.3.0...1.4.0
 [1.2.3]: https://github.com/jandrescodes/shopping-list/compare/1.2.2...1.2.3

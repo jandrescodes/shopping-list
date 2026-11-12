@@ -92,6 +92,7 @@ La app queda en `http://localhost:8000`.
 | Tests API/persistencia  | `php artisan test` (Pest 3.8)                                                 |
 | Tests de navegador      | `npx playwright test`                                                         |
 | Lint/formato            | `vendor/bin/pint`                                                             |
+| Análisis estático       | `vendor/bin/phpstan analyse` (Larastan, nivel 5)                              |
 | Compilar assets         | `npm run build`                                                               |
 | Purgar lápidas          | `php artisan items:purge-tombstones --before=<fecha>`                         |
 | Purgar listas inactivas | `php artisan lists:purge-inactive` (requiere `SHOPPING_LIST_INACTIVE_MONTHS`) |
@@ -120,7 +121,7 @@ public/sw.js                 Service worker
 lang/es/                     Textos en español
 docs/                        Constitución, roadmap, despliegue, esquema de datos, flujo de la app y guía de UI
 specs/                       Especificaciones por feature (SDD)
-.github/workflows/           CI (tests, Pint y audit) y deploy a Hostinger
+.github/workflows/           CI (tests, Pint, Larastan y audit) y deploy a Hostinger
 CHANGELOG.md                 Historial de versiones
 ```
 

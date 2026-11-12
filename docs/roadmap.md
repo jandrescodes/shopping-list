@@ -99,6 +99,15 @@
   cumplida; 274 Pest y `pint --test` en verde).
   → `specs/006-limpieza-de-listas-abandonadas/`
 
+- **Mantenimiento técnico (sin spec, sin cambio de comportamiento)** — versión
+  **1.6.1** (2026-11-12). El cálculo
+  del orden de los ítems salió de `ShoppingList` a `App\Support\ItemOrdering`
+  (puro, con tests unitarios sin BD); Larastan nivel 5 sin baseline en CI,
+  Dependabot semanal (actions, composer, npm) y `Model::shouldBeStrict()` fuera
+  de producción; `symfony/*` a 7.4.23 cierra los avisos de `composer audit`.
+  Arreglado el intermitente de `list-throttle.spec.js` (espera la lista
+  hidratada). 281 Pest, 118 Playwright, Larastan y `pint --test` en verde.
+
 ## Siguiente 🔜
 
 _Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.

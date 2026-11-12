@@ -30,6 +30,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   por la clase de fondo del aviso
   concreto (`.bg-amber-50`, `.bg-green-50`, …) o `hasText`.
   Primera vez: `npx playwright install chromium`.
+- Análisis estático: `vendor/bin/phpstan analyse` (Larastan nivel 5, sin
+  baseline; corre en CI). Corrige la causa (PHPDoc genéricos como
+  `HasMany<Item, $this>`, `@mixin` en los Resources), no ignores el error.
 - Lint/formato: `vendor/bin/pint` (`php artisan pint` no existe: Pint no
   registra comando de Artisan en este repo)
 - Assets: `npm run build`
@@ -67,8 +70,8 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   guarda `budget` (`null` o vacío lo quita).
 - **`items.position`**: una sola secuencia por lista (pendientes y comprados
   comparten posición), `BIGINT` con huecos de 1024. Mover escribe una sola
-  fila con el punto medio; si el hueco se agota, `ShoppingList` renumera toda
-  la lista de 1024 en 1024 y todos los ítems tocados llevan la misma versión (el delta del sync los reenvía). El orden
+  fila con el punto medio; si el hueco se agota, se renumera toda
+  la lista (el cálculo es puro y vive en `App\Support\ItemOrdering`; `ShoppingList` solo lee y persiste) de 1024 en 1024 y todos los ítems tocados llevan la misma versión (el delta del sync los reenvía). El orden
   de lectura es
   `is_purchased, position, id`. Un `DEFAULT 0` rompería el orden de las
   listas existentes: la migración rellena antes de exigir `NOT NULL`.
@@ -164,7 +167,7 @@ Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
 - Ejecuta `php artisan test` y confirma en la respuesta que pasa.
 - Si tocaste la capa de cliente (`resources/js/`), ejecuta también
   `npx playwright test` y confírmalo.
-- Ejecuta `vendor/bin/pint` sobre los archivos tocados.
+- Ejecuta `vendor/bin/pint` y `vendor/bin/phpstan analyse` sobre el proyecto.
 
 ## Planificación de features (Spec-Driven Development)
 
