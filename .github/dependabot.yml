@@ -12,6 +12,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Pint >=1.31 exige PHP 8.3; el proyecto sigue en 8.2.
+      - dependency-name: laravel/pint
+        versions: [">=1.31"]
     groups:
       composer-minor-patch:
         update-types: [minor, patch]

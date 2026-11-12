@@ -37,6 +37,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   registra comando de Artisan en este repo)
 - Assets: `npm run build`
 
+> `laravel/pint` queda en `<1.31` (`ignore` en `.github/dependabot.yml`): desde 1.31
+> exige PHP 8.3. Retirar la regla al subir de PHP.
+
 > PHP 8.2 (XAMPP) fija el techo: Pest 4 y `pest-plugin-browser` exigen 8.3+, así
 > que los tests de navegador van con Playwright directo, no dentro de Pest.
 
