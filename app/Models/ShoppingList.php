@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ItemOrdering;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,13 +11,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @property string|null $slug null hasta que `creating` lo genera
+ */
 class ShoppingList extends Model
 {
     use HasFactory;
 
     public const MAX_ACTIVE_ITEMS = 200;
-
-    public const POSITION_STEP = 1024;
 
     protected $fillable = ['name', 'currency', 'budget'];
 
@@ -37,6 +39,9 @@ class ShoppingList extends Model
         return 'slug';
     }
 
+    /**
+     * @return HasMany<Item, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(Item::class);
@@ -105,35 +110,6 @@ class ShoppingList extends Model
     }
 
     /**
-     * Position that places an item right before the active item `$beforeId`,
-     * or at the end when it is null, unknown, deleted or from another list.
-     * `$moving` is left out of the neighbour search. Returns null when the gap
-     * before the neighbour is exhausted and the list needs renumbering.
-     */
-    public function positionBefore(?int $beforeId, ?Item $moving): ?int
-    {
-        $others = fn () => $this->items()->when($moving, fn ($q) => $q->whereKeyNot($moving->getKey()));
-        $before = $beforeId === null ? null : $others()->whereKey($beforeId)->first();
-
-        if ($before === null) {
-            return ($others()->max('position') ?? 0) + self::POSITION_STEP;
-        }
-
-        $prev = $others()
-            ->where(fn ($q) => $q->where('position', '<', $before->position)
-                ->orWhere(fn ($q) => $q->where('position', $before->position)->where('id', '<', $before->id)))
-            ->orderByDesc('position')->orderByDesc('id')->first();
-
-        if ($prev === null) {
-            return $before->position - self::POSITION_STEP;
-        }
-
-        $position = ($prev->position + $before->position) >> 1;
-
-        return $position > $prev->position && $position < $before->position ? $position : null;
-    }
-
-    /**
      * Moves an item right before `$beforeId` (or to the end) and returns the
      * items whose position changed: empty when it is already there, every
      * active item when the list had to be renumbered.
@@ -142,22 +118,21 @@ class ShoppingList extends Model
      */
     public function moveItem(Item $item, ?int $beforeId): Collection
     {
-        $ordered = $this->itemsExcept($item);
-        $slot = $this->slotOf($ordered, $beforeId);
+        $positions = $this->plannedPositions($item, $beforeId);
 
-        if ($beforeId === $item->id || $this->isInPlace($item, $ordered, $slot)) {
+        if ($positions === []) {
             return new Collection;
         }
 
-        $position = $this->positionBefore($beforeId, $item);
+        $byId = $this->items()->whereKey(array_keys($positions))->get()->keyBy('id');
+        $byId->put($item->id, $item);
 
-        if ($position === null) {
-            return $this->renumberItems($ordered, $item, $slot ?? false);
-        }
+        return (new Collection($positions))->map(function (int $position, int $id) use ($byId) {
+            $each = $byId[$id];
+            $each->update(['position' => $position]);
 
-        $item->update(['position' => $position]);
-
-        return new Collection([$item]);
+            return $each;
+        })->values();
     }
 
     /**
@@ -166,55 +141,20 @@ class ShoppingList extends Model
      */
     public function isItemInPlace(Item $item, ?int $beforeId): bool
     {
-        $ordered = $this->itemsExcept($item);
-
-        return $beforeId === $item->id || $this->isInPlace($item, $ordered, $this->slotOf($ordered, $beforeId));
+        return $this->plannedPositions($item, $beforeId) === [];
     }
 
     /**
-     * @return Collection<int, Item>
+     * @return array<int, int> id => new position, see ItemOrdering::move()
      */
-    private function itemsExcept(Item $item): Collection
+    private function plannedPositions(Item $item, ?int $beforeId): array
     {
-        return $this->items()->whereKeyNot($item->getKey())->orderBy('position')->orderBy('id')->get();
-    }
+        $others = $this->items()->whereKeyNot($item->getKey())->orderBy('position')->orderBy('id')
+            ->get(['id', 'position'])
+            ->map(fn (Item $other) => ['id' => (int) $other->id, 'position' => (int) $other->position])
+            ->all();
 
-    /**
-     * Index of the neighbour in `$ordered`, or null when the target is the end.
-     *
-     * @param  Collection<int, Item>  $ordered
-     */
-    private function slotOf(Collection $ordered, ?int $beforeId): ?int
-    {
-        $slot = $beforeId === null ? false : $ordered->search(fn (Item $other) => $other->id === $beforeId);
-
-        return $slot === false ? null : $slot;
-    }
-
-    /**
-     * Rewrites every active position in steps of 1024 with `$item` placed at
-     * `$slot` of `$ordered` (the end when false).
-     *
-     * @param  Collection<int, Item>  $ordered  active items without `$item`, in order
-     * @return Collection<int, Item>
-     */
-    private function renumberItems(Collection $ordered, Item $item, int|false $slot): Collection
-    {
-        $sequence = $ordered->values();
-        $sequence->splice($slot === false ? $sequence->count() : $slot, 0, [$item]);
-
-        return $sequence->each(function (Item $each, int $index) {
-            $each->update(['position' => ($index + 1) * self::POSITION_STEP]);
-        });
-    }
-
-    private function isInPlace(Item $item, Collection $ordered, ?int $slot): bool
-    {
-        $after = fn (Item $other) => [$other->position, $other->id] <=> [$item->position, $item->id];
-        $previous = $slot === null ? $ordered->last() : ($slot > 0 ? $ordered[$slot - 1] : null);
-        $next = $slot === null ? null : $ordered[$slot];
-
-        return ($previous === null || $after($previous) < 0) && ($next === null || $after($next) > 0);
+        return ItemOrdering::move($others, (int) $item->id, (int) $item->position, $beforeId);
     }
 
     public function hasReachedActiveItemLimit(): bool

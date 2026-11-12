@@ -97,11 +97,3 @@ it('treats a purchased neighbour as valid, since the sequence is single', functi
 
     expect(orderedNames($list))->toBe(['a', 'c', 'b']);
 });
-
-it('computes the position for a new item without a moving item', function () {
-    [$list, $i] = listWithPositions(['a' => 1024, 'b' => 2048]);
-
-    expect($list->positionBefore($i['b']->id, null))->toBe(1536)
-        ->and($list->positionBefore(null, null))->toBe(3072)
-        ->and(ShoppingList::factory()->create()->positionBefore(null, null))->toBe(1024);
-});
