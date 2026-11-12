@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int|null $position null hasta que `creating` lo asigna
+ */
 class Item extends Model
 {
     use HasFactory, SoftDeletes;
@@ -31,6 +34,9 @@ class Item extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<ShoppingList, $this>
+     */
     public function shoppingList(): BelongsTo
     {
         return $this->belongsTo(ShoppingList::class);
