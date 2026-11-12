@@ -7,7 +7,8 @@ test('a throttled write says to wait, with the Retry-After seconds', async ({ pa
     const res = await request.post('/api/lists', { data: { name: 'Feria del sábado' } });
     const { slug } = await res.json();
     await page.goto(`/l/${slug}`);
-    await expect(page.locator('#new-item')).toBeVisible();
+    // Hidratado: un load()/sync posterior limpiaría el aviso del 429.
+    await expect(page.locator('#client-item-list')).toBeVisible();
 
     await page.route(`**/api/lists/${slug}/items`, (route) => {
         if (route.request().method() !== 'POST') {
