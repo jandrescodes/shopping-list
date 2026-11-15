@@ -2,9 +2,9 @@
 
 @section('content')
     <section class="py-8 text-center">
-        <p class="text-sm font-semibold text-blue-700">@yield('code')</p>
+        <p class="text-sm font-semibold text-blue-700 dark:text-blue-400">@yield('code')</p>
         <h1 class="mt-2 text-2xl font-bold tracking-tight">@yield('heading')</h1>
-        <p class="mt-2 text-gray-600">@yield('message')</p>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">@yield('message')</p>
 
         @hasSection('retry')
             <a href="{{ url()->current() }}"
