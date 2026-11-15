@@ -5,6 +5,11 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/* Controles nativos y fondo previo al CSS siguen el tema del sistema. */
+:root {
+    color-scheme: light dark;
+}
+
 [x-cloak] {
     display: none !important;
 }
