@@ -108,16 +108,31 @@
   Arreglado el intermitente de `list-throttle.spec.js` (espera la lista
   hidratada). 281 Pest, 118 Playwright, Larastan y `pint --test` en verde.
 
+- **Modo oscuro** — feature completa (T0-T16 + cierre), versión propuesta
+  **1.7.0**. La interfaz sigue `prefers-color-scheme` (home, lista, 404, 503,
+  `/offline` y 500) con contraste AA medido con axe en oscuro a 375 y 1280 px;
+  el QR conserva su fondo blanco; `CACHE_VERSION` `v6`. Sin interruptor ni JS;
+  limitación aceptada: destello claro al arrancar la PWA. Validada RF por RF en
+  `specs/007-modo-oscuro/validation.md` (veredicto: spec cumplida; 281 Pest,
+  166 Playwright, Larastan y `pint --test` en verde).
+  → `specs/007-modo-oscuro/`
+
 ## Siguiente 🔜
 
-_Nada en curso._ Pendiente manual: dar de alta el monitor externo sobre `/up`.
+_Nada en curso._ Pendientes manuales: dar de alta el monitor externo sobre `/up` y probar el modo oscuro en un celular (arranque de la PWA y escaneo del QR).
 
 ## Backlog / ideas 💡
 
 Por orden de valor. Todas caben en el hosting compartido sin colas ni procesos
 persistentes.
 
-- **Modo oscuro** — mejora estética, baja prioridad.
+- **Componentes Blade para las vistas** — extraer a componentes
+  (`resources/views/components/`) los bloques repetidos de `list.blade.php`,
+  `home.blade.php` y el layout: avisos, campos, botones y filas, hoy con
+  cadenas largas de clases de Tailwind (y de variantes `dark:`) repetidas en el
+  HTML. Cuidado: los avisos reservados y los `id` de los e2e (ver `AGENTS.md`)
+  deben conservar sus clases y ubicación; el refactor no cambia el
+  comportamiento ni el aspecto, y pide la suite e2e completa como puerta.
 
 Descartado a propósito (no recomendado para una lista familiar en hosting
 compartido): categorías de ítems, historial de compras, notificaciones push y

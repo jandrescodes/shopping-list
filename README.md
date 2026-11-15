@@ -39,6 +39,9 @@ la **única llave de acceso**: no hay registro, login ni contraseñas.
   corregir después desde la lista.
 - **Instalable como PWA.** Manifest + service worker; funciona en modo pantalla
   completa y mantiene visible la última lectura conocida sin conexión.
+- **Modo oscuro.** La interfaz sigue el tema del sistema, sin interruptor ni
+  preferencia guardada, con contraste AA también en oscuro y el QR siempre
+  sobre blanco para poder escanearlo.
 - **Mobile-first y responsive.** Diseñada primero para celular (targets
   táctiles de 44px, contraste AA) y adaptada a desktop con una card centrada.
 - **Endurecida.** Slug de 128 bits como única llave, sin CORS comodín,

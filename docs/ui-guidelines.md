@@ -78,3 +78,50 @@ componentes).
   lectura y borra las tuyas por su marker.
 - **Formateador del IDE.** Debe respetar Pint: uno distinto reescribió
   `fn ($x)` a `fn($x)` en los tests y rompió la indentación de este archivo.
+
+## Modo oscuro
+
+El tema sigue al sistema con `prefers-color-scheme`; no hay interruptor ni
+preferencia guardada. Tailwind 4 aplica `dark:` por media query, así que el
+cambio de esquema con la página abierta se refleja sin recargar ni perder una
+edición en curso. El estilo claro no cambia: solo se añaden tokens `dark:`.
+
+- **Declaración.** `:root { color-scheme: light dark; }` en `app.css` y el
+  meta `color-scheme` en `layout`, `offline` y `errors/500`; dos metas
+  `theme-color` con `media` (claro `#2563eb`, oscuro `#030712`). El
+  `manifest.json` no se toca.
+- **Mapeo por rol.**
+
+    | Rol                               | Clase en oscuro                                                      |
+    | --------------------------------- | -------------------------------------------------------------------- |
+    | Fondo de página                   | `dark:bg-gray-950`                                                   |
+    | Card desktop                      | `dark:md:bg-gray-900 dark:md:ring-gray-800`                          |
+    | Texto principal / secundario      | `dark:text-gray-100` (200, 300) / `dark:text-gray-400`               |
+    | Ícono decorativo                  | `dark:text-gray-500`                                                 |
+    | Campo                             | `dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-400` |
+    | Borde de campo                    | `dark:border-gray-500` (≥3:1)                                        |
+    | Separadores                       | `dark:border-gray-700` / `dark:divide-gray-700`                      |
+    | Superficie flotante (menú, panel) | `dark:bg-gray-800 dark:border-gray-700`                              |
+    | Hover                             | `dark:hover:bg-gray-700`                                             |
+    | Enlaces                           | `dark:text-blue-400` (hover `-300`)                                  |
+    | Avisos                            | `dark:bg-{color}-950 dark:text-{color}-200`                          |
+    | Botón primario / destructivo      | sin cambio                                                           |
+    | «Sí, limpiar»                     | `dark:bg-gray-600`                                                   |
+    | Deshabilitado                     | `dark:disabled:text-gray-600`                                        |
+
+- **Pares.** Cada `hover:` o `disabled:` con color lleva su par `dark:` en el
+  mismo elemento (también `dark:hover:` y `dark:disabled:hover:`).
+- **QR sobre blanco.** `#qr-code` conserva el fondo blanco para que el código
+  se escanee; en oscuro solo cambia su borde.
+- **Páginas independientes.** `offline` y `errors/500` llevan su propio
+  `<style>` con hex y `@media (prefers-color-scheme: dark)`, sin build ni
+  scripts. Cambiar `offline` exige subir `CACHE_VERSION` de `sw.js`.
+- **Limitación conocida.** La pantalla de arranque de la PWA instalada usa el
+  `background_color` único del manifest: con el sistema en oscuro hay un
+  destello claro antes de la app.
+- **Verificación.** axe-core también en oscuro (375 y 1280px, transiciones
+  desactivadas), en cada estado y en los nueve avisos; hover, sugerencia
+  activa, deshabilitado, foco ≥3:1, targets de 44px y orden de Tab igual al
+  claro. Todo en `tests/e2e/dark-mode.spec.js`.
+- **Pendientes ajenos al tema** detectados al auditar: el input de nombre en
+  edición inline no tiene `<label>` y «Agregar» mide 42px (sin `min-h-11`).

@@ -29,6 +29,9 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
   `[role="alert"]`) — la vista de lista tiene varios avisos que comparten rol (error, offline, "enlace copiado"). Scopea
   por la clase de fondo del aviso
   concreto (`.bg-amber-50`, `.bg-green-50`, …) o `hasText`.
+  `tests/e2e/dark-mode.spec.js` emula `colorScheme` y audita con axe; las
+  páginas 500 y 503 no tienen ruta en el server e2e, así que renderiza su Blade
+  con `artisan tinker` (fuerza los assets compilados, ignora `public/hot`).
   Primera vez: `npx playwright install chromium`.
 - Análisis estático: `vendor/bin/phpstan analyse` (Larastan nivel 5, sin
   baseline; corre en CI). Corrige la causa (PHPDoc genéricos como
@@ -53,8 +56,16 @@ correr en el hosting compartido Premium de Hostinger. Sin cuentas de usuario: el
 - Validación de entradas con Form Requests.
 - URLs públicas de una lista por `slug`, nunca por `id`.
 - Interfaz mobile-first que también funciona en desktop: en `md+` el contenido
-  va en una card centrada con barra de marca encima (`layout.blade.php`). Un
-  solo tema por ahora; modo oscuro es mejora futura.
+  va en una card centrada con barra de marca encima (`layout.blade.php`). El
+  tema sigue al sistema (`prefers-color-scheme`): sin interruptor, sin JS ni
+  `localStorage`; Tailwind `dark:` en su modo por defecto (media query) y
+  `color-scheme: light dark` en `app.css` y en un meta. Solo se **añaden**
+  tokens `dark:`: nunca se renombra ni se quita una clase clara ni un `id`
+  reservado, y un elemento nuevo lleva su `dark:` desde el principio. En
+  oscuro, `text-gray-500` queda prohibido para texto (usa `dark:text-gray-400`;
+  `dark:text-gray-500` solo en íconos decorativos). Páginas independientes
+  (`offline`, `errors/500`): `<style>` propio con
+  `@media (prefers-color-scheme: dark)`, sin build. Detalle y mapeo por rol en `docs/ui-guidelines.md`.
 - Package manager: `npm` (no pnpm). Dependencias de front con versión exacta
   pineada (`npm i --save-exact`); del front, a Hostinger sube `public/build/`
   (compilado en el runner), nunca `node_modules/`.
@@ -154,7 +165,10 @@ Transport-Security`, todas las respuestas) y `ReferrerPolicy` (`no-referrer`:
   (`#export-notice`, lista copiada como texto) y `bg-orange-50`
   (`#budget-alert`, presupuesto excedido). Otros `id` reservados:
   `#budget-line`, `#budget-chip`, `#budget-input`, `#move-announcement`,
-  `#name-suggestions`, `#show-qr`, `#qr-code`.
+  `#name-suggestions`, `#show-qr`, `#qr-code`. En oscuro cada aviso conserva su
+  clase clara y añade su propio `dark:bg-<color>-950`: una clase de oscuro sin
+  prefijo nunca reutiliza un fondo reservado. `#qr-code` no recibe variante de
+  fondo (el QR se escanea sobre blanco); solo su borde.
 - **Tests táctiles**: `Input.synthesizeScrollGesture` no scrollea en Chromium
   headless; los gestos de `list-order.spec.js` usan
   `Input.dispatchTouchEvent` (start, moves, end) con `hasTouch` e `isMobile`.
@@ -247,5 +261,6 @@ documento derivado de los artefactos, tras aprobar una propuesta.
 ### Lecciones de UI
 
 Reglas: targets táctiles de 44px reales (`min-h-11`), nunca `text-gray-400`
-sobre blanco, y verificar con axe-core a 375 y 1280px más una pasada de
+sobre blanco, y verificar con axe-core a 375 y 1280px (también en oscuro,
+`colorScheme: 'dark'`, ver `tests/e2e/dark-mode.spec.js`) más una pasada de
 teclado. Detalle y ejemplos en `docs/ui-guidelines.md`.
