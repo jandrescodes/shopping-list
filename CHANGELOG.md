@@ -5,6 +5,30 @@ Todos los cambios notables de este proyecto se documentan aquí.
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
 y el proyecto se adhiere a [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.7.0] - 2026-11-15
+
+### Añadido
+
+- **Modo oscuro.** La interfaz sigue el tema del sistema
+  (`prefers-color-scheme`): home, lista, páginas 404 y 503, `/offline` y la
+  página 500, con sus avisos, menú, formularios y edición inline. Sin
+  interruptor ni preferencia guardada; el cambio de tema con la página abierta
+  se aplica sin recargar y sin perder una edición en curso. Contraste AA
+  medido con axe-core en oscuro a 375 y 1280 px. El QR conserva fondo blanco
+  para escanearse. Las metas `theme-color` y `color-scheme` se adaptan al
+  tema. El estilo claro no cambia. Validada en `specs/007-modo-oscuro/`.
+
+### Cambiado
+
+- **Service worker.** `CACHE_VERSION` sube a `v6` para que los clientes
+  reemplacen el shell y la página offline por las versiones con modo oscuro.
+
+### Limitaciones conocidas
+
+- La pantalla de arranque de la PWA instalada usa el `background_color` único
+  del manifest: con el sistema en oscuro hay un destello claro antes de la
+  app.
+
 ## [1.6.1] - 2026-11-12
 
 ### Cambiado
