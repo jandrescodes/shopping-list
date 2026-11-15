@@ -4,12 +4,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)">
     <title>Algo salió mal</title>
     {{-- Standalone like offline.blade.php: no layout and no @vite. A 500 caused
          by a missing or broken build would otherwise fail again while rendering
          this view and answer with a blank page. --}}
     <style>
+        :root {
+            color-scheme: light dark;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
@@ -54,6 +60,21 @@
             color: #fff;
             font-weight: 600;
             text-decoration: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #030712;
+                color: #f3f4f6;
+            }
+
+            .code {
+                color: #60a5fa;
+            }
+
+            p {
+                color: #9ca3af;
+            }
         }
     </style>
 </head>

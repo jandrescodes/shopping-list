@@ -4,12 +4,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)">
     <title>Sin conexión</title>
     {{-- Standalone offline fallback: no @vite, no manifest, no service worker
          registration. It must render from the SW cache with zero network and
          no build assets. --}}
     <style>
+        :root {
+            color-scheme: light dark;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
@@ -47,6 +53,17 @@
             margin: 0;
             font-size: .95rem;
             color: #4b5563;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #030712;
+                color: #f3f4f6;
+            }
+
+            p {
+                color: #9ca3af;
+            }
         }
     </style>
 </head>

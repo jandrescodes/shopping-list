@@ -35,6 +35,11 @@ it('renders the 500 page without build assets', function () {
     $response->assertStatus(500);
     $response->assertSee('Algo salió mal');
     $response->assertDontSee('/build/', false);
+    $response->assertSee('<meta name="color-scheme" content="light dark">', false);
+    $response->assertSee('<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">', false);
+    $response->assertSee('<meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)">', false);
+    $response->assertSee('color-scheme: light dark;', false);
+    $response->assertSee('@media (prefers-color-scheme: dark)', false);
 });
 
 it('renders a Spanish 503 page with a retry link', function () {
