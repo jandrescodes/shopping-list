@@ -8,13 +8,13 @@
     },
     "devDependencies": {
         "@axe-core/playwright": "4.14.0",
-        "@playwright/test": "1.65.0",
+        "@playwright/test": "1.65.1",
         "@tailwindcss/vite": "4.3.5",
-        "axios": "1.21.0",
+        "axios": "1.21.1",
         "concurrently": "9.2.4",
         "laravel-vite-plugin": "3.2.1",
         "tailwindcss": "4.3.5",
-        "vite": "8.3.7"
+        "vite": "8.3.8"
     },
     "dependencies": {
         "@alpinejs/sort": "3.17.5",
